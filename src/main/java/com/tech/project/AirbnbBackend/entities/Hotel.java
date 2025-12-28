@@ -22,7 +22,7 @@ public class Hotel {
     @Column(nullable = false)
     private String name;
 
-    @Column
+    @Column(nullable = false)
     private String city;
 
     @Column(columnDefinition = "TEXT[]")
@@ -45,4 +45,7 @@ public class Hotel {
 
     @OneToMany(mappedBy = "hotel",fetch = FetchType.LAZY)
     private List<Room>rooms;
+
+    @ManyToOne
+    private User owner;
 }
