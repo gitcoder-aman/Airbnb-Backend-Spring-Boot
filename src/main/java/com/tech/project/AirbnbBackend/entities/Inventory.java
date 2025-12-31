@@ -39,6 +39,9 @@ public class Inventory {
     @Column(nullable = false,columnDefinition = "INTEGER DEFAULT 0")
     private Integer bookCount;
 
+    @Column(nullable = false,columnDefinition = "INTEGER DEFAULT 0")
+    private Integer reversedCount;
+
     @Column(nullable = false)
     private Integer totalCount;
 

@@ -1,8 +1,10 @@
 package com.tech.project.AirbnbBackend.entities.enums;
 
 public enum BookingStatus {
-    REVERSED,
-    PENDING,
+    RESERVED,
+    GUEST_ADDED,
+    PAYMENT_PENDING,
     CONFIRMED,
-    CANCELLED
+    CANCELLED,
+    EXPIRED,
 }
