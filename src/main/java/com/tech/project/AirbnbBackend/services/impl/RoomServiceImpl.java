@@ -75,8 +75,8 @@ public class RoomServiceImpl implements RoomService {
                 .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID" + roomId));
        // delete all future inventory for this room
          // because if we delete first room then violate foreign key throw exception
+        inventoryService.deleteAllInventories(room);  // first delete inventory data of room then delete room
        roomRepository.deleteById(roomId);
-        inventoryService.deleteFutureInventory(room);  // first delete inventory data of room then delete room
 
     }
 
