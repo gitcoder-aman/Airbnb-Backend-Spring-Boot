@@ -5,14 +5,16 @@ import com.tech.project.AirbnbBackend.dto.BookingRequest;
 import com.tech.project.AirbnbBackend.dto.GuestDto;
 import com.tech.project.AirbnbBackend.entities.*;
 import com.tech.project.AirbnbBackend.entities.enums.BookingStatus;
+import com.tech.project.AirbnbBackend.exception.BookingExpiredException;
 import com.tech.project.AirbnbBackend.exception.ResourceNotFoundException;
 import com.tech.project.AirbnbBackend.repositories.*;
+import com.tech.project.AirbnbBackend.services.BookingExpirationManager;
 import com.tech.project.AirbnbBackend.services.BookingService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -30,6 +32,8 @@ public class BookingServiceImpl implements BookingService {
     private final InventoryRepository inventoryRepository;
     private final GuestRepository guestRepository;
     private final ModelMapper modelMapper;
+    private final BookingExpirationManager expirationManager;
+
 
     @Transactional
     @Override
@@ -92,8 +96,10 @@ public class BookingServiceImpl implements BookingService {
                 .findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID " + bookingId));
 
-        if(hasBookingExpired(booking)){
-            throw new IllegalStateException("Booking has already expired");
+        if (hasBookingExpired(booking)) {
+            expirationManager.doBookingStatusExpired(bookingId);
+
+            throw new BookingExpiredException("Booking has already expired");
         }
         if(booking.getBookingStatus() != BookingStatus.RESERVED){
             throw new IllegalStateException("Booking is not under reserved state , cannot add guest");
@@ -110,9 +116,9 @@ public class BookingServiceImpl implements BookingService {
     }
 
     public boolean hasBookingExpired(Booking booking){
-
         return booking.getCreatedAt().plusMinutes(10).isBefore(LocalDateTime.now());
     }
+
     public User getCurrentUser(){
         User user = new User();
         user.setId(1L);  //TODO: Remove dummy User
