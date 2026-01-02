@@ -27,24 +27,26 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
                         AND i.closed = FALSE AND  (i.totalCount-i.bookCount-i.reversedCount) >= :numberOfRooms
                         GROUP BY i.hotel,i.room HAVING COUNT(i.date)=:dateCount
             """)
-    Page<Hotel>findHotelsWithAvailableInventory(
+    Page<Hotel> findHotelsWithAvailableInventory(
             @Param("city") String city,
-            @Param("startDate")LocalDate startDate,
+            @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
             @Param("numberOfRooms") Integer numberOfRooms,
             @Param("dateCount") Long dateCount,
             Pageable pageable
-            );
+    );
 
     @Query("""
-SELECT i from Inventory i WHERE i.room.id=:roomId AND i.date BETWEEN :checkInDate AND :checkOutDate
-                        AND i.closed = FALSE AND  (i.totalCount-i.bookCount-i.reversedCount) >= :numberOfRooms
-""")
+            SELECT i from Inventory i WHERE i.room.id=:roomId AND i.date BETWEEN :checkInDate AND :checkOutDate
+                                    AND i.closed = FALSE AND  (i.totalCount-i.bookCount-i.reversedCount) >= :numberOfRooms
+            """)
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    List<Inventory>findAndLockAvailableInventory(
+    List<Inventory> findAndLockAvailableInventory(
             @Param("roomId") Long roomId,
-            @Param("checkInDate")LocalDate checkInDate,
+            @Param("checkInDate") LocalDate checkInDate,
             @Param("checkOutDate") LocalDate checkOutDate,
             @Param("numberOfRooms") Integer numberOfRooms
     );
+
+    List<Inventory> findByHotelAndDateBetween(Hotel hotel, LocalDate checkInDate, LocalDate checkOutDate);
 }
