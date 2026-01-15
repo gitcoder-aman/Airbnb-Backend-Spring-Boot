@@ -2,6 +2,7 @@ package com.tech.project.AirbnbBackend.controllers;
 
 import com.tech.project.AirbnbBackend.dto.HotelDto;
 import com.tech.project.AirbnbBackend.services.HotelService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -18,7 +19,7 @@ public class HotelAdminController {
     private final HotelService hotelService;
 
     @PostMapping
-    public ResponseEntity<HotelDto>createNewHotel(@RequestBody HotelDto hotelDto){
+    public ResponseEntity<HotelDto>createNewHotel(@Valid @RequestBody HotelDto hotelDto){
         log.info("Attempting to create a new Hotel with name: {}", hotelDto.getName());
         HotelDto createdHotelDto = hotelService.createNewHotel(hotelDto);
         return new ResponseEntity<>(createdHotelDto, HttpStatus.CREATED);
@@ -32,7 +33,7 @@ public class HotelAdminController {
     }
 
     @PutMapping("/{hotelId}")
-    public ResponseEntity<HotelDto>updateHotelById(@PathVariable Long hotelId,@RequestBody HotelDto hotelDto){
+    public ResponseEntity<HotelDto>updateHotelById(@PathVariable Long hotelId,@Valid @RequestBody HotelDto hotelDto){
         HotelDto updatedHotelDtoResponse = hotelService.updateHotelById(hotelId,hotelDto);
         return new ResponseEntity<>(updatedHotelDtoResponse,HttpStatus.OK);
     }
@@ -44,7 +45,7 @@ public class HotelAdminController {
     }
 
     @PatchMapping("/{hotelId}")
-    public ResponseEntity<HotelDto>updateParticularField(@PathVariable Long hotelId,@RequestBody HotelDto hotelDto){
+    public ResponseEntity<HotelDto>updateParticularField(@PathVariable Long hotelId,@Valid @RequestBody HotelDto hotelDto){
         HotelDto updatedHotelDtoResponse = hotelService.updateParticularFieldById(hotelId,hotelDto);
         return new ResponseEntity<>(updatedHotelDtoResponse,HttpStatus.OK);
     }

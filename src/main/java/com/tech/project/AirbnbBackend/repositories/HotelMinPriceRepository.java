@@ -13,11 +13,26 @@ import java.util.Optional;
 
 public interface HotelMinPriceRepository extends JpaRepository<HotelMinPrice,Long> {
 
+//    reject hotel if ANY date inventory is closed in AND Not Exists
     @Query("""
-            SELECT new com.tech.project.AirbnbBackend.dto.HotelPriceDto(i.hotel,AVG(i.price))
-                        FROM HotelMinPrice i WHERE i.hotel.city = :city AND i.date BETWEEN :checkInDate AND :checkOutDate
-                        AND i.hotel.active = TRUE
-                        GROUP BY i.hotel
+            SELECT new com.tech.project.AirbnbBackend.dto.HotelPriceDto(hmp.hotel,AVG(hmp.price))
+                        FROM HotelMinPrice hmp WHERE hmp.hotel.city = :city
+                                    AND hmp.hotel.active = TRUE
+                                    AND hmp.date BETWEEN :checkInDate AND :checkOutDate
+                                    AND NOT EXISTS(
+                                                SELECT 1 FROM Inventory inv
+                                                            WHERE inv.hotel=hmp.hotel
+                                                                        AND inv.date BETWEEN :checkInDate AND :checkOutDate
+                                                                                    AND inv.closed = TRUE
+                                                )
+                                                              AND NOT EXISTS (
+                                                                    SELECT 1
+                                                                    FROM Inventory inv
+                                                                    WHERE inv.hotel = hmp.hotel
+                                                                      AND inv.date BETWEEN :checkInDate AND :checkOutDate
+                                                                      AND (inv.totalCount - inv.bookCount) < :numberOfRooms
+                                                              )
+                        GROUP BY hmp.hotel
             """)
     Page<HotelPriceDto> findHotelsWithAvailableInventory(
             @Param("city") String city,

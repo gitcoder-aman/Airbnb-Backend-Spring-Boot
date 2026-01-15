@@ -4,11 +4,11 @@ import com.tech.project.AirbnbBackend.dto.HotelPriceDto;
 import com.tech.project.AirbnbBackend.dto.HotelSearchRequest;
 import com.tech.project.AirbnbBackend.entities.Inventory;
 import com.tech.project.AirbnbBackend.entities.Room;
+import com.tech.project.AirbnbBackend.exception.InvalidDateException;
 import com.tech.project.AirbnbBackend.repositories.HotelMinPriceRepository;
 import com.tech.project.AirbnbBackend.repositories.InventoryRepository;
 import com.tech.project.AirbnbBackend.services.InventoryService;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +28,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public void initializeRoomForAYear(Room room) {
         LocalDate today = LocalDate.now();
-        LocalDate endDate = today.plusYears(1);
+        LocalDate endDate = today.plusDays(4);
         for (;!today.isAfter(endDate);today = today.plusDays(1)){
             Inventory inventory = Inventory.builder()
                     .hotel(room.getHotel())
@@ -55,13 +55,13 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public Page<HotelPriceDto> searchHotels(HotelSearchRequest hotelSearchRequest) {
         Pageable pageable = PageRequest.of(hotelSearchRequest.getPage(),hotelSearchRequest.getSize());
-        long dateCount = ChronoUnit.DAYS.between(hotelSearchRequest.getStartDate(),hotelSearchRequest.getEndDate()) + 1;
+        long dateCount = ChronoUnit.DAYS.between(hotelSearchRequest.getCheckInDate(),hotelSearchRequest.getCheckOutDate()) + 1;
 
 
         Page<HotelPriceDto> hotelsWithAvailableInventory = hotelMinPriceRepository.findHotelsWithAvailableInventory(
                                                                             hotelSearchRequest.getCity(),
-                                                                            hotelSearchRequest.getStartDate(),
-                                                                            hotelSearchRequest.getEndDate(),
+                                                                            hotelSearchRequest.getCheckInDate(),
+                                                                            hotelSearchRequest.getCheckOutDate(),
                                                                             hotelSearchRequest.getNumberOfRooms(),
                                                                             dateCount,
                                                                             pageable);

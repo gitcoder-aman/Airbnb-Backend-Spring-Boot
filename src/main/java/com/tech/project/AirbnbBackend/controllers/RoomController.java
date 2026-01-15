@@ -2,6 +2,7 @@ package com.tech.project.AirbnbBackend.controllers;
 
 import com.tech.project.AirbnbBackend.dto.RoomDto;
 import com.tech.project.AirbnbBackend.services.RoomService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,7 @@ public class RoomController {
     private final RoomService roomService;
 
     @PostMapping
-    public ResponseEntity<RoomDto>createNewRoomInHotel(@PathVariable Long hotelId, @RequestBody RoomDto roomDto){
+    public ResponseEntity<RoomDto>createNewRoomInHotel(@PathVariable Long hotelId, @Valid @RequestBody RoomDto roomDto){
 
         RoomDto createRoomResponse = roomService.createNewRoomInHotel(hotelId,roomDto);
         return new ResponseEntity<>(createRoomResponse, HttpStatus.CREATED);
@@ -41,7 +42,7 @@ public class RoomController {
         return ResponseEntity.noContent().build();
     }
     @PutMapping("/{roomId}")
-    public ResponseEntity<RoomDto>updateRoomById(@PathVariable Long hotelId,@PathVariable Long roomId,@RequestBody RoomDto roomDto){
+    public ResponseEntity<RoomDto>updateRoomById(@PathVariable Long hotelId,@PathVariable Long roomId,@Valid @RequestBody RoomDto roomDto){
         RoomDto updatedRoomResponse = roomService.updateRoomById(roomId, roomDto);
         return ResponseEntity.ok(updatedRoomResponse);
     }

@@ -3,8 +3,12 @@ package com.tech.project.AirbnbBackend.advice;
 import com.tech.project.AirbnbBackend.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -13,7 +17,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<?>>handleResourceNotFound(ResourceNotFoundException exception){
         ApiError apiError = ApiError.builder()
                 .httpStatus(HttpStatus.NOT_FOUND)
-                .message(exception.getMessage())
+                .message(exception.getLocalizedMessage())
                 .build();
         return buildErrorResponseEntity(apiError);
     }
@@ -22,8 +26,28 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<?>>handleInternalServerError(Exception exception){
         ApiError apiError = ApiError.builder()
                 .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-                .message(exception.getMessage())
+                .message(exception.getLocalizedMessage())
                 .build();
+        return buildErrorResponseEntity(apiError);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<?>> handleValidationException(
+            MethodArgumentNotValidException ex
+    ) {
+        Map<String, String> errors = new HashMap<>();
+
+        ex.getBindingResult().getFieldErrors()
+                .forEach(error ->
+                        errors.put(error.getField(), error.getDefaultMessage())
+                );
+
+        ApiError apiError = ApiError.builder()
+                .httpStatus(HttpStatus.BAD_REQUEST)
+                .message("Validation failed")
+                .subErrors(errors)
+                .build();
+
         return buildErrorResponseEntity(apiError);
     }
 
