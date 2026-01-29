@@ -40,7 +40,7 @@ public class Inventory {
     private Integer bookCount;
 
     @Column(nullable = false,columnDefinition = "INTEGER DEFAULT 0")
-    private Integer reversedCount;
+    private Integer reservedCount;
 
     @Column(nullable = false)
     private Integer totalCount;

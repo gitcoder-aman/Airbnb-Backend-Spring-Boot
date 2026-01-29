@@ -5,7 +5,6 @@ import com.tech.project.AirbnbBackend.entities.enums.Gender;
 import lombok.Data;
 
 import jakarta.validation.constraints.*;
-import lombok.Data;
 
 @Data
 public class GuestDto {

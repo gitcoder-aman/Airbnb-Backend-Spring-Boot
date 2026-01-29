@@ -33,6 +33,7 @@ public class BookingServiceImpl implements BookingService {
     private final GuestRepository guestRepository;
     private final ModelMapper modelMapper;
     private final BookingExpirationManager expirationManager;
+    private final int BOOKING_EXPIRATION_TIME_IN_MINUTES = 10;
 
 
     @Transactional
@@ -60,9 +61,9 @@ public class BookingServiceImpl implements BookingService {
             throw new IllegalStateException("Room is not available anymore");
         }
 
-        //Reverse the room/update the booked count of inventories
+        //Reserve the room/update the booked count of inventories
         for (Inventory inventory : inventoryList){
-            inventory.setReversedCount(inventory.getReversedCount()+bookingRequest.getNumberOfRooms());
+            inventory.setReservedCount(inventory.getReservedCount()+bookingRequest.getNumberOfRooms());
         }
         inventoryRepository.saveAll(inventoryList);
 
@@ -116,11 +117,11 @@ public class BookingServiceImpl implements BookingService {
     }
 
     public boolean hasBookingExpired(Booking booking){
-        return booking.getCreatedAt().plusMinutes(10).isBefore(LocalDateTime.now());
+        return booking.getCreatedAt().plusMinutes(BOOKING_EXPIRATION_TIME_IN_MINUTES).isBefore(LocalDateTime.now());
     }
 
-    public User getCurrentUser(){
-        User user = new User();
+    public SignUpRequestDto getCurrentUser(){
+        SignUpRequestDto user = new SignUpRequestDto();
         user.setId(1L);  //TODO: Remove dummy User
         user.setName("Aman");
         return user;

@@ -38,7 +38,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
 
     @Query("""
             SELECT i from Inventory i WHERE i.room.id=:roomId AND i.date BETWEEN :checkInDate AND :checkOutDate
-                                    AND i.closed = FALSE AND  (i.totalCount-i.bookCount-i.reversedCount) >= :numberOfRooms
+                                    AND i.closed = FALSE AND  (i.totalCount-i.bookCount-i.reservedCount) >= :numberOfRooms
             """)
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<Inventory> findAndLockAvailableInventory(

@@ -1,8 +1,5 @@
 package com.tech.project.AirbnbBackend.dto;
 
-import com.tech.project.AirbnbBackend.entities.Hotel;
-import com.tech.project.AirbnbBackend.entities.Room;
-import com.tech.project.AirbnbBackend.entities.User;
 import com.tech.project.AirbnbBackend.entities.enums.BookingStatus;
 import lombok.Data;
 

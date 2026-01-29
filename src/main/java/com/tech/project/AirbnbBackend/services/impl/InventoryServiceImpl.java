@@ -4,7 +4,6 @@ import com.tech.project.AirbnbBackend.dto.HotelPriceDto;
 import com.tech.project.AirbnbBackend.dto.HotelSearchRequest;
 import com.tech.project.AirbnbBackend.entities.Inventory;
 import com.tech.project.AirbnbBackend.entities.Room;
-import com.tech.project.AirbnbBackend.exception.InvalidDateException;
 import com.tech.project.AirbnbBackend.repositories.HotelMinPriceRepository;
 import com.tech.project.AirbnbBackend.repositories.InventoryRepository;
 import com.tech.project.AirbnbBackend.services.InventoryService;
@@ -34,7 +33,7 @@ public class InventoryServiceImpl implements InventoryService {
                     .hotel(room.getHotel())
                     .room(room)
                     .bookCount(0)
-                    .reversedCount(0)
+                    .reservedCount(0)
                     .city(room.getHotel().getCity())
                     .date(today)
                     .price(room.getBasePrice())
