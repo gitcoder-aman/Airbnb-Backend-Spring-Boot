@@ -5,7 +5,9 @@ import com.tech.project.AirbnbBackend.dto.HotelInfoDto;
 import com.tech.project.AirbnbBackend.dto.RoomDto;
 import com.tech.project.AirbnbBackend.entities.Hotel;
 import com.tech.project.AirbnbBackend.entities.Room;
+import com.tech.project.AirbnbBackend.entities.User;
 import com.tech.project.AirbnbBackend.exception.ResourceNotFoundException;
+import com.tech.project.AirbnbBackend.exception.UnAuthorisedException;
 import com.tech.project.AirbnbBackend.repositories.HotelRepository;
 import com.tech.project.AirbnbBackend.repositories.RoomRepository;
 import com.tech.project.AirbnbBackend.services.HotelService;
@@ -14,9 +16,11 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +39,9 @@ public class HotelServiceImpl implements HotelService {
 
         Hotel hotel = modelMapper.map(hotelDto,Hotel.class);
         hotel.setActive(false);
+
+        User user = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        hotel.setOwner(user);
         hotel = hotelRepository.save(hotel);
         log.info("Created a new Hotel with Id: {}",hotel.getId());
         return modelMapper.map(hotel,HotelDto.class);
@@ -46,7 +53,17 @@ public class HotelServiceImpl implements HotelService {
        Hotel hotel =  hotelRepository
                .findById(id)
                .orElseThrow(()->new ResourceNotFoundException("Hotel not found with ID"+id));
-       return modelMapper.map(hotel,HotelDto.class);
+
+        User user = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        assert user != null;
+        log.info("user{}", user.getId());
+        log.info("user{}", user.getName());
+        log.info("user{}", user.getEmail());
+        log.info("user{}", user.getRoles());
+        if(!user.equals(hotel.getOwner())){
+            throw new UnAuthorisedException("This user does not own this hotel with id: "+id);
+        }
+        return modelMapper.map(hotel,HotelDto.class);
     }
 
     @Override
@@ -54,6 +71,14 @@ public class HotelServiceImpl implements HotelService {
         Hotel hotel =  hotelRepository
                 .findById(id)
                 .orElseThrow(()->new ResourceNotFoundException("Hotel not found with ID"+id));
+
+
+        //just we have to assure the admin can update own hotel detail not other
+        User user = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        assert user != null;
+        if(!user.equals(hotel.getOwner())){
+            throw new UnAuthorisedException("This user does not own this hotel with id: "+id);
+        }
         modelMapper.map(hotelDto,hotel);
         hotelDto.setId(hotel.getId());
         hotel = hotelRepository.save(hotel);
@@ -66,6 +91,14 @@ public class HotelServiceImpl implements HotelService {
         Hotel hotel =  hotelRepository
                 .findById(id)
                 .orElseThrow(()->new ResourceNotFoundException("Hotel not found with ID"+id));
+
+
+        //just we have to assure the admin can delete own hotel detail not other
+        User user = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        assert user != null;
+        if(!user.equals(hotel.getOwner())){
+            throw new UnAuthorisedException("This user does not own this hotel with id: "+id);
+        }
 
         // delete the future inventory for this hotel
         for (Room room: hotel.getRooms()){
@@ -87,6 +120,12 @@ public class HotelServiceImpl implements HotelService {
 //            ReflectionUtils.setField(fieldToBeUpdated,hotel,value);
 //        });  //TODO: This Reflection use is not best practices
 
+        //just we have to assure the admin can update own hotel detail not other
+        User user = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        assert user != null;
+        if(!user.equals(hotel.getOwner())){
+            throw new UnAuthorisedException("This user does not own this hotel with id: "+hotelId);
+        }
         if (hotelDto.getName() != null) {
             hotel.setName(hotelDto.getName());
         }
@@ -128,6 +167,13 @@ public class HotelServiceImpl implements HotelService {
         Hotel hotel =  hotelRepository
                 .findById(hotelId)
                 .orElseThrow(()->new ResourceNotFoundException("Hotel not found with ID"+hotelId));
+
+        //just we have to assure the admin can activate own hotel not other
+        User user = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        assert user != null;
+        if(!user.equals(hotel.getOwner())){
+            throw new UnAuthorisedException("This user does not own this hotel with id: "+hotelId);
+        }
         hotel.setActive(true);
         //Create inventory for all the rooms for this hotel
         for (Room room : hotel.getRooms()){

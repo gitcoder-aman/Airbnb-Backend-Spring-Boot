@@ -5,6 +5,7 @@ import com.tech.project.AirbnbBackend.dto.SignUpRequestDto;
 import com.tech.project.AirbnbBackend.dto.UserDto;
 import com.tech.project.AirbnbBackend.entities.User;
 import com.tech.project.AirbnbBackend.entities.enums.Role;
+import com.tech.project.AirbnbBackend.exception.ResourceNotFoundException;
 import com.tech.project.AirbnbBackend.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -13,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import java.util.Set;
 
 @Service
@@ -48,5 +50,11 @@ public class AuthService {
         arr[0] = jwtService.generateAccessToken(user);
         arr[1] = jwtService.generateRefreshToken(user);
         return arr;
+    }
+
+    public String refreshToken(String refreshToken) {
+        Long userId = jwtService.getUserIdFromToken(refreshToken);
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+        return jwtService.generateAccessToken(user);
     }
 }

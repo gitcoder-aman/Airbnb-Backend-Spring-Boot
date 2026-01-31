@@ -7,12 +7,14 @@ import com.tech.project.AirbnbBackend.entities.*;
 import com.tech.project.AirbnbBackend.entities.enums.BookingStatus;
 import com.tech.project.AirbnbBackend.exception.BookingExpiredException;
 import com.tech.project.AirbnbBackend.exception.ResourceNotFoundException;
+import com.tech.project.AirbnbBackend.exception.UnAuthorisedException;
 import com.tech.project.AirbnbBackend.repositories.*;
 import com.tech.project.AirbnbBackend.services.BookingExpirationManager;
 import com.tech.project.AirbnbBackend.services.BookingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -97,6 +100,12 @@ public class BookingServiceImpl implements BookingService {
                 .findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID " + bookingId));
 
+        User user = getCurrentUser();
+
+        if(!user.equals(booking.getUser())){
+            throw new UnAuthorisedException("Booking does not belong to this user with id: "+user.getId());
+        }
+
         if (hasBookingExpired(booking)) {
             expirationManager.doBookingStatusExpired(bookingId);
 
@@ -120,10 +129,8 @@ public class BookingServiceImpl implements BookingService {
         return booking.getCreatedAt().plusMinutes(BOOKING_EXPIRATION_TIME_IN_MINUTES).isBefore(LocalDateTime.now());
     }
 
-    public SignUpRequestDto getCurrentUser(){
-        SignUpRequestDto user = new SignUpRequestDto();
-        user.setId(1L);  //TODO: Remove dummy User
-        user.setName("Aman");
-        return user;
+    public User getCurrentUser(){
+
+        return (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
     }
 }

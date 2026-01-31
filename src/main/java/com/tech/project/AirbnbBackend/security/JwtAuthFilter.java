@@ -2,6 +2,7 @@ package com.tech.project.AirbnbBackend.security;
 
 import com.tech.project.AirbnbBackend.entities.User;
 import com.tech.project.AirbnbBackend.services.UserService;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,8 +23,8 @@ import java.io.IOException;
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private JwtService jwtService;
-    private UserService userService;
+    private final JwtService jwtService;
+    private final UserService userService;
 
     @Autowired
     @Qualifier("handlerExceptionResolver")
@@ -40,7 +41,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String token = requestTokenHeader.split("Bearer ")[1];
             Long userId = jwtService.getUserIdFromToken(token);
 
-            if(userId != null && SecurityContextHolder.getContext().getAuthentication() != null){
+            if(userId != null && SecurityContextHolder.getContext().getAuthentication() == null){
                 User user = userService.getUserById(userId);
 
                 //check if the user should be allowed
@@ -51,7 +52,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
             filterChain.doFilter(request,response);
-        }catch (Exception e){
+        }catch (JwtException e){
             handlerExceptionResolver.resolveException(request,response,null,e);
         }
     }

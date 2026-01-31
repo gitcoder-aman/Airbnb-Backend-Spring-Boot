@@ -24,7 +24,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     @Query("""
             SELECT DISTINCT i.hotel
             FROM Inventory i WHERE i.city = :city AND i.date BETWEEN :startDate AND :endDate
-                        AND i.closed = FALSE AND  (i.totalCount-i.bookCount-i.reversedCount) >= :numberOfRooms
+                        AND i.closed = FALSE AND  (i.totalCount-i.bookCount-i.reservedCount) >= :numberOfRooms
                         GROUP BY i.hotel,i.room HAVING COUNT(i.date)=:dateCount
             """)
     Page<Hotel> findHotelsWithAvailableInventory(
