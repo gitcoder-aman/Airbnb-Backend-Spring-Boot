@@ -171,7 +171,7 @@ public class HotelServiceImpl implements HotelService {
         //just we have to assure the admin can activate own hotel not other
         User user = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
         assert user != null;
-        if(!user.equals(hotel.getOwner())){
+        if(!user.getId().equals(hotel.getOwner().getId())){
             throw new UnAuthorisedException("This user does not own this hotel with id: "+hotelId);
         }
         hotel.setActive(true);

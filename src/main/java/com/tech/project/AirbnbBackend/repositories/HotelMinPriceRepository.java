@@ -30,7 +30,7 @@ public interface HotelMinPriceRepository extends JpaRepository<HotelMinPrice,Lon
                                                                     FROM Inventory inv
                                                                     WHERE inv.hotel = hmp.hotel
                                                                       AND inv.date BETWEEN :checkInDate AND :checkOutDate
-                                                                      AND (inv.totalCount - inv.bookCount) < :numberOfRooms
+                                                                      AND (inv.totalCount - inv.bookedCount) < :numberOfRooms
                                                               )
                         GROUP BY hmp.hotel
             """)
