@@ -23,4 +23,6 @@ public interface BookingService {
     void cancelBooking(Long bookingId);
 
     String getBookingStatus(Long bookingId);
+
+    List<BookingDto> getAllBookingsByHotelId(Long hotelId);
 }

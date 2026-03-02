@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,9 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+
+import static com.tech.project.AirbnbBackend.utils.AppUtils.getCurrentUser;
 
 @Service
 @Slf4j
@@ -311,12 +315,25 @@ public class BookingServiceImpl implements BookingService {
         return booking.getBookingStatus().name();
     }
 
-    public boolean hasBookingExpired(Booking booking) {
-        return booking.getCreatedAt().plusMinutes(BOOKING_EXPIRATION_TIME_IN_MINUTES).isBefore(LocalDateTime.now());
+    @Override
+    public List<BookingDto> getAllBookingsByHotelId(Long hotelId) {
+
+        Hotel hotel = hotelRepository.findById(hotelId).orElseThrow(() -> new ResourceNotFoundException("Hotel not found with hotel Id: " + hotelId));
+        User user = getCurrentUser();
+
+        log.info("Getting all bookings for the hotel with id: {}",hotelId);
+
+        if (!user.equals(hotel.getOwner())) {
+            throw new AccessDeniedException("You are not the owner of hotel with id: " + hotelId);
+        }
+        List<Booking> bookings = bookingRepository.findByHotel(hotel);
+
+        return bookings.stream()
+                .map((element) -> modelMapper.map(element, BookingDto.class))
+                .collect(Collectors.toList());
     }
 
-    public User getCurrentUser() {
-
-        return (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+    public boolean hasBookingExpired(Booking booking) {
+        return booking.getCreatedAt().plusMinutes(BOOKING_EXPIRATION_TIME_IN_MINUTES).isBefore(LocalDateTime.now());
     }
 }

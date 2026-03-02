@@ -4,6 +4,7 @@ package com.tech.project.AirbnbBackend.services;
 import com.tech.project.AirbnbBackend.dto.HotelDto;
 import com.tech.project.AirbnbBackend.dto.HotelInfoDto;
 
+import java.util.List;
 import java.util.Map;
 
 public interface HotelService {
@@ -21,4 +22,6 @@ public interface HotelService {
     HotelDto activateHotel(Long hotelId);
 
     HotelInfoDto getHotelInfoById(Long hotelId);
+
+    List<HotelDto> getAllHotels();
 }

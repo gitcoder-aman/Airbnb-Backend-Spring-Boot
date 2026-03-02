@@ -1,6 +1,8 @@
 package com.tech.project.AirbnbBackend.controllers;
 
+import com.tech.project.AirbnbBackend.dto.BookingDto;
 import com.tech.project.AirbnbBackend.dto.HotelDto;
+import com.tech.project.AirbnbBackend.services.BookingService;
 import com.tech.project.AirbnbBackend.services.HotelService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -17,6 +20,7 @@ import java.util.Map;
 @Slf4j
 public class HotelAdminController {
     private final HotelService hotelService;
+    private final BookingService bookingService;
 
     @PostMapping
     public ResponseEntity<HotelDto>createNewHotel(@Valid @RequestBody HotelDto hotelDto){
@@ -54,5 +58,15 @@ public class HotelAdminController {
     public ResponseEntity<HotelDto>activateHotelById(@PathVariable Long hotelId){
         HotelDto activateHotelResponse = hotelService.activateHotel(hotelId);
         return ResponseEntity.ok(activateHotelResponse);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<HotelDto>>getAllHotels(){
+        return ResponseEntity.ok(hotelService.getAllHotels());
+    }
+
+    @GetMapping("/{hotelId}/bookings")
+    public ResponseEntity<List<BookingDto>>getAllBookingsByHotelId(@PathVariable Long hotelId){
+        return ResponseEntity.ok(bookingService.getAllBookingsByHotelId(hotelId));
     }
 }

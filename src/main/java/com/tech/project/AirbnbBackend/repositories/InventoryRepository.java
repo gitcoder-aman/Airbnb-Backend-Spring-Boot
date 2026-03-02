@@ -23,14 +23,14 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     // of rooms for every day in the given date range.
     @Query("""
             SELECT DISTINCT i.hotel
-            FROM Inventory i WHERE i.city = :city AND i.date BETWEEN :startDate AND :endDate
+            FROM Inventory i WHERE i.city = :city AND i.date BETWEEN :checkInDate AND :checkOutDate
                         AND i.closed = FALSE AND  (i.totalCount-i.bookedCount-i.reservedCount) >= :numberOfRooms
                         GROUP BY i.hotel,i.room HAVING COUNT(i.date)=:dateCount
             """)
     Page<Hotel> findHotelsWithAvailableInventory(
             @Param("city") String city,
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate,
+            @Param("checkInDate") LocalDate checkInDate,
+            @Param("checkOutDate") LocalDate checkOutDate,
             @Param("numberOfRooms") Integer numberOfRooms,
             @Param("dateCount") Long dateCount,
             Pageable pageable
@@ -98,7 +98,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
             UPDATE Inventory i
-                        SET i.bookCount=i.bookedCount-:numberOfRooms
+                        SET i.bookedCount=i.bookedCount-:numberOfRooms
                             WHERE i.room.id=:roomId
                             AND i.date BETWEEN :checkInDate AND :checkOutDate
                             AND (i.totalCount-i.bookedCount) >= :numberOfRooms
