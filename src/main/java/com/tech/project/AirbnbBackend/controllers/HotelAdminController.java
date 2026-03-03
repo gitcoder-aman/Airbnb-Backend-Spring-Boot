@@ -2,15 +2,19 @@ package com.tech.project.AirbnbBackend.controllers;
 
 import com.tech.project.AirbnbBackend.dto.BookingDto;
 import com.tech.project.AirbnbBackend.dto.HotelDto;
+import com.tech.project.AirbnbBackend.dto.HotelReportDto;
 import com.tech.project.AirbnbBackend.services.BookingService;
 import com.tech.project.AirbnbBackend.services.HotelService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -23,50 +27,62 @@ public class HotelAdminController {
     private final BookingService bookingService;
 
     @PostMapping
-    public ResponseEntity<HotelDto>createNewHotel(@Valid @RequestBody HotelDto hotelDto){
+    public ResponseEntity<HotelDto> createNewHotel(@Valid @RequestBody HotelDto hotelDto) {
         log.info("Attempting to create a new Hotel with name: {}", hotelDto.getName());
         HotelDto createdHotelDto = hotelService.createNewHotel(hotelDto);
         return new ResponseEntity<>(createdHotelDto, HttpStatus.CREATED);
     }
 
     @GetMapping("/{hotelId}")
-    public ResponseEntity<HotelDto>getHotelById(@PathVariable Long hotelId){
+    public ResponseEntity<HotelDto> getHotelById(@PathVariable Long hotelId) {
         log.info("Getting to a Hotel with id : {}", hotelId);
         HotelDto responseHotelDto = hotelService.getHotelById(hotelId);
-        return new ResponseEntity<>(responseHotelDto,HttpStatus.OK);
+        return new ResponseEntity<>(responseHotelDto, HttpStatus.OK);
     }
 
     @PutMapping("/{hotelId}")
-    public ResponseEntity<HotelDto>updateHotelById(@PathVariable Long hotelId,@Valid @RequestBody HotelDto hotelDto){
-        HotelDto updatedHotelDtoResponse = hotelService.updateHotelById(hotelId,hotelDto);
-        return new ResponseEntity<>(updatedHotelDtoResponse,HttpStatus.OK);
+    public ResponseEntity<HotelDto> updateHotelById(@PathVariable Long hotelId, @Valid @RequestBody HotelDto hotelDto) {
+        HotelDto updatedHotelDtoResponse = hotelService.updateHotelById(hotelId, hotelDto);
+        return new ResponseEntity<>(updatedHotelDtoResponse, HttpStatus.OK);
     }
 
     @DeleteMapping("/{hotelId}")
-    public ResponseEntity<Void>deleteHotelById(@PathVariable Long hotelId){
+    public ResponseEntity<Void> deleteHotelById(@PathVariable Long hotelId) {
         hotelService.deleteHotelById(hotelId);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{hotelId}")
-    public ResponseEntity<HotelDto>updateParticularField(@PathVariable Long hotelId,@Valid @RequestBody HotelDto hotelDto){
-        HotelDto updatedHotelDtoResponse = hotelService.updateParticularFieldById(hotelId,hotelDto);
-        return new ResponseEntity<>(updatedHotelDtoResponse,HttpStatus.OK);
+    public ResponseEntity<HotelDto> updateParticularField(@PathVariable Long hotelId, @Valid @RequestBody HotelDto hotelDto) {
+        HotelDto updatedHotelDtoResponse = hotelService.updateParticularFieldById(hotelId, hotelDto);
+        return new ResponseEntity<>(updatedHotelDtoResponse, HttpStatus.OK);
     }
 
     @PatchMapping("/activate/{hotelId}")
-    public ResponseEntity<HotelDto>activateHotelById(@PathVariable Long hotelId){
+    public ResponseEntity<HotelDto> activateHotelById(@PathVariable Long hotelId) {
         HotelDto activateHotelResponse = hotelService.activateHotel(hotelId);
         return ResponseEntity.ok(activateHotelResponse);
     }
 
     @GetMapping
-    public ResponseEntity<List<HotelDto>>getAllHotels(){
+    public ResponseEntity<List<HotelDto>> getAllHotels() {
         return ResponseEntity.ok(hotelService.getAllHotels());
     }
 
     @GetMapping("/{hotelId}/bookings")
-    public ResponseEntity<List<BookingDto>>getAllBookingsByHotelId(@PathVariable Long hotelId){
+    public ResponseEntity<List<BookingDto>> getAllBookingsByHotelId(@PathVariable Long hotelId) {
         return ResponseEntity.ok(bookingService.getAllBookingsByHotelId(hotelId));
+    }
+
+    @GetMapping("/{hotelId}/reports")
+    public ResponseEntity<HotelReportDto> getHotelReport(
+            @PathVariable Long hotelId,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate
+    ) {
+        if(startDate == null) startDate = LocalDate.now().minusMonths(1);
+        if(endDate == null) endDate = LocalDate.now();
+
+        return ResponseEntity.ok(bookingService.getHotelReport(hotelId,startDate,endDate));
     }
 }
