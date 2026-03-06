@@ -59,7 +59,7 @@ public class HotelAdminController {
     }
 
     @PatchMapping("/activate/{hotelId}")
-    public ResponseEntity<HotelDto> activateHotelById(@PathVariable Long hotelId) {
+        public ResponseEntity<HotelDto> activateHotelById(@PathVariable Long hotelId) {
         HotelDto activateHotelResponse = hotelService.activateHotel(hotelId);
         return ResponseEntity.ok(activateHotelResponse);
     }
@@ -85,4 +85,5 @@ public class HotelAdminController {
 
         return ResponseEntity.ok(bookingService.getHotelReport(hotelId,startDate,endDate));
     }
+
 }

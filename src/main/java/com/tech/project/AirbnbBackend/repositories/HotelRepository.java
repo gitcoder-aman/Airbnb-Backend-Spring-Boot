@@ -8,5 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface HotelRepository extends JpaRepository<Hotel, Long> {
-    List<HotelDto> findByOwner(User user);
+    List<Hotel> findByOwner(User user);
 }

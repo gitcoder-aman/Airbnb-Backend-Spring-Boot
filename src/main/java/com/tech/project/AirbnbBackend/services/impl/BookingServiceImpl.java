@@ -26,7 +26,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cglib.core.Local;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -364,6 +363,16 @@ public class BookingServiceImpl implements BookingService {
         BigDecimal avgRevenues = totalConfirmedBookings == 0 ? BigDecimal.ZERO :
                 totalRevenuesOfConfirmedBooking.divide(BigDecimal.valueOf(totalConfirmedBookings), RoundingMode.HALF_UP);
         return new HotelReportDto(totalConfirmedBookings, totalRevenuesOfConfirmedBooking, avgRevenues);
+    }
+
+    @Override
+    public List<BookingDto> getMyBookings() {
+        User user = getCurrentUser();
+
+        return bookingRepository.findByUser(user)
+                .stream()
+                .map((element) -> modelMapper.map(element, BookingDto.class))
+                .collect(Collectors.toList());
     }
 
     public boolean hasBookingExpired(Booking booking) {

@@ -12,7 +12,7 @@ public class GuestDto {
     private Long id;
 
     @NotNull(message = "User reference is required")
-    private User user;
+    private UserDto user;
 
     @NotBlank(message = "Guest name cannot be empty")
     @Size(min = 2, max = 50, message = "Guest name must be between 2 and 50 characters")

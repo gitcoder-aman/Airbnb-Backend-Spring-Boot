@@ -202,7 +202,7 @@ public class HotelServiceImpl implements HotelService {
     public List<HotelDto> getAllHotels() {
         User user = getCurrentUser();
         log.info("Getting all hotels for this admin user with id :{}",user.getId());
-        List<HotelDto> hotels = hotelRepository.findByOwner(user);
+        List<Hotel> hotels = hotelRepository.findByOwner(user);
         return hotels.stream().map(
                 (hotel) -> modelMapper.map(hotel, HotelDto.class)
         ).collect(Collectors.toList());
