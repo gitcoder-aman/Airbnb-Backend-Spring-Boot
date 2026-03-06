@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping(path = "/bookings")
+@RequestMapping(path = "/api/v1/bookings")
 @RequiredArgsConstructor
 public class HotelBookingController {
 

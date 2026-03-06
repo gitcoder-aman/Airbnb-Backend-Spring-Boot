@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "/admin/hotels/{hotelId}/rooms")
+@RequestMapping(path = "/api/v1/admin/hotels/{hotelId}/rooms")
 @RequiredArgsConstructor
 public class RoomController {
 

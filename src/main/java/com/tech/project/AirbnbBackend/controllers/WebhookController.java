@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/webhook")
+@RequestMapping("/api/v1/webhook")
 @RequiredArgsConstructor
 public class WebhookController {
 

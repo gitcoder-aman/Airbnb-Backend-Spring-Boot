@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping(path = "/admin/hotels")
+@RequestMapping(path = "/api/v1/admin/hotels")
 @RequiredArgsConstructor
 @Slf4j
 public class HotelAdminController {

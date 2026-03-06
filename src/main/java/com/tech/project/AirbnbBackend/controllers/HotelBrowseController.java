@@ -11,7 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RequestMapping(path = "/hotels")
+@RequestMapping(path = "/api/v1/hotels")
 @RestController
 @RequiredArgsConstructor
 public class HotelBrowseController {

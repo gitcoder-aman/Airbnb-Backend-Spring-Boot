@@ -27,6 +27,10 @@ public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
                 .stream()
                 .anyMatch(route-> request.getURI().getPath().contains(route));
 
+        if (request.getURI().getPath().equals("/")) {
+            return body;
+        }
+
         if(body instanceof ApiResponse<?> || isAllowed){
             return body;
         }
