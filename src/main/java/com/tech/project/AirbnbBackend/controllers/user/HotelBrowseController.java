@@ -1,8 +1,6 @@
-package com.tech.project.AirbnbBackend.controllers;
+package com.tech.project.AirbnbBackend.controllers.user;
 
-import com.tech.project.AirbnbBackend.dto.HotelInfoDto;
-import com.tech.project.AirbnbBackend.dto.HotelPriceDto;
-import com.tech.project.AirbnbBackend.dto.HotelSearchRequest;
+import com.tech.project.AirbnbBackend.dto.*;
 import com.tech.project.AirbnbBackend.services.HotelService;
 import com.tech.project.AirbnbBackend.services.InventoryService;
 import jakarta.validation.Valid;
@@ -10,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RequestMapping(path = "/api/v1/hotels")
 @RestController
@@ -29,4 +29,15 @@ public class HotelBrowseController {
         HotelInfoDto hotelInfoByIdResponse = hotelService.getHotelInfoById(hotelId);
         return ResponseEntity.ok(hotelInfoByIdResponse);
     }
+    @GetMapping
+    public ResponseEntity<List<HotelDto>> getAllHotels() {
+        return ResponseEntity.ok(hotelService.getAllHotels());
+    }
+    //  Get rooms of a hotel
+    @GetMapping("/{hotelId}/rooms")
+    public ResponseEntity<List<RoomDto>> getRoomsByHotel(@PathVariable Long hotelId) {
+        return ResponseEntity.ok(hotelService.getRoomsByHotelId(hotelId));
+    }
+
+
 }

@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 public class HotelDto {
 
@@ -30,6 +32,8 @@ public class HotelDto {
     @NotNull(message = "Hotel contact information is required")
     @Valid   //  IMPORTANT (nested validation)
     private HotelContactInfo contactInfo;
+
+    private BigDecimal startingPrice;
 
     private Boolean active;
 }

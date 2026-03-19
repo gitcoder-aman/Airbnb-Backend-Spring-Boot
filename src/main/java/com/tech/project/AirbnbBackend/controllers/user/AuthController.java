@@ -1,4 +1,4 @@
-package com.tech.project.AirbnbBackend.controllers;
+package com.tech.project.AirbnbBackend.controllers.user;
 
 import com.tech.project.AirbnbBackend.dto.LoginDto;
 import com.tech.project.AirbnbBackend.dto.LoginResponseDto;

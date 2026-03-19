@@ -19,6 +19,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -45,6 +46,7 @@ public class HotelServiceImpl implements HotelService {
 
         User user = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
         hotel.setOwner(user);
+        hotel.setStartingPrice(BigDecimal.ZERO);
         hotel = hotelRepository.save(hotel);
         log.info("Created a new Hotel with Id: {}", hotel.getId());
         return modelMapper.map(hotel, HotelDto.class);
@@ -199,12 +201,33 @@ public class HotelServiceImpl implements HotelService {
     }
 
     @Override
-    public List<HotelDto> getAllHotels() {
+    public List<HotelDto> getAllHotelsByOwner() {
         User user = getCurrentUser();
         log.info("Getting all hotels for this admin user with id :{}",user.getId());
         List<Hotel> hotels = hotelRepository.findByOwner(user);
         return hotels.stream().map(
                 (hotel) -> modelMapper.map(hotel, HotelDto.class)
         ).collect(Collectors.toList());
+    }
+    @Override
+    public List<HotelDto> getAllHotels(){
+        log.info("Getting all hotels for this user:");
+        List<Hotel> hotels = hotelRepository.findByActiveTrue();
+        return hotels.stream().map(
+                (hotel) -> modelMapper.map(hotel, HotelDto.class)
+        ).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<RoomDto> getRoomsByHotelId(Long hotelId) {
+        log.info("Getting all rooms of hotel with ID: {}", hotelId);
+        Hotel hotel = hotelRepository
+                .findById(hotelId)
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID" + hotelId));
+
+        return hotel.getRooms()
+                .stream()
+                .map((element) -> modelMapper.map(element, RoomDto.class))
+                .collect(Collectors.toList());
     }
 }

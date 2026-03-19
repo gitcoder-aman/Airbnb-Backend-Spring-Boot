@@ -1,4 +1,4 @@
-package com.tech.project.AirbnbBackend.controllers;
+package com.tech.project.AirbnbBackend.controllers.admin;
 
 import com.tech.project.AirbnbBackend.dto.InventoryDto;
 import com.tech.project.AirbnbBackend.dto.UpdateInventoryRequestDto;

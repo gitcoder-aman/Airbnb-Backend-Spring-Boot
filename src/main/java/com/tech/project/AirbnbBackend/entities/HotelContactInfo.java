@@ -14,6 +14,7 @@ import lombok.ToString;
 @Embeddable
 @ToString
 public class HotelContactInfo {
+    @NotBlank(message = "Hotel address must be required.")
     private String address;
     @NotBlank(message = "Phone number is required")
     @Size(max = 12,min = 10)

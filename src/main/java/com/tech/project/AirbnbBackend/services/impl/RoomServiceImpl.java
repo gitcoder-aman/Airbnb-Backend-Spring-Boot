@@ -21,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -39,6 +40,7 @@ public class RoomServiceImpl implements RoomService {
     private final InventoryRepository inventoryRepository;
     private final PriceService priceService;
 
+    @Transactional
     @Override
     public RoomDto createNewRoomInHotel(Long hotelId, RoomDto roomDto) {
         log.info("Creating a new Room in hotel with ID: {}", hotelId);
@@ -61,6 +63,12 @@ public class RoomServiceImpl implements RoomService {
         if(hotel.getActive()){
             inventoryService.initializeRoomForAYear(room);
         }
+
+        //update the hotel starting price
+        BigDecimal startingPrice =  roomRepository.findMinPriceByHotelId(hotelId);
+        hotel.setStartingPrice(startingPrice);
+        hotelRepository.save(hotel);
+
         return modelMapper.map(room, RoomDto.class);
     }
 

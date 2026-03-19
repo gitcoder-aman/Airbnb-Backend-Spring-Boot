@@ -3,9 +3,9 @@ package com.tech.project.AirbnbBackend.services;
 
 import com.tech.project.AirbnbBackend.dto.HotelDto;
 import com.tech.project.AirbnbBackend.dto.HotelInfoDto;
+import com.tech.project.AirbnbBackend.dto.RoomDto;
 
 import java.util.List;
-import java.util.Map;
 
 public interface HotelService {
 
@@ -23,5 +23,9 @@ public interface HotelService {
 
     HotelInfoDto getHotelInfoById(Long hotelId);
 
-    List<HotelDto> getAllHotels();
+    List<HotelDto> getAllHotelsByOwner();
+
+    List<HotelDto>getAllHotels();
+
+    List<RoomDto> getRoomsByHotelId(Long hotelId);
 }

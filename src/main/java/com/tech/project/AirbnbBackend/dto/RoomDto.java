@@ -35,4 +35,7 @@ public class RoomDto {
     @NotNull(message = "Room capacity is required")
     @Min(value = 1, message = "Capacity must be at least 1")
     private Integer capacity;
+
+    @NotNull(message = "Room description is required")
+    private String description;
 }

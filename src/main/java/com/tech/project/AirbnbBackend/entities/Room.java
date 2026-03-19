@@ -1,5 +1,6 @@
 package com.tech.project.AirbnbBackend.entities;
 
+import com.tech.project.AirbnbBackend.entities.enums.RoomType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,6 +10,11 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"hotel_id", "type"})
+        }
+)
 @Entity
 @Getter
 @Setter
@@ -22,8 +28,9 @@ public class Room {
     @JoinColumn(name = "hotel_id",nullable = false)
     private Hotel hotel;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String type;
+    private RoomType type;
 
     @Column(nullable = false,precision = 10,scale = 2)
     private BigDecimal basePrice;
@@ -39,6 +46,9 @@ public class Room {
 
     @Column(nullable = false)
     private Integer capacity;
+
+    @Column(nullable = false)
+    private String description;
 
 
     @CreationTimestamp

@@ -1,4 +1,4 @@
-package com.tech.project.AirbnbBackend.controllers;
+package com.tech.project.AirbnbBackend.controllers.admin;
 
 import com.tech.project.AirbnbBackend.dto.RoomDto;
 import com.tech.project.AirbnbBackend.services.RoomService;
@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.tech.project.AirbnbBackend.controllers;
+package com.tech.project.AirbnbBackend.controllers.admin;
 
 import com.tech.project.AirbnbBackend.dto.BookingDto;
 import com.tech.project.AirbnbBackend.dto.HotelDto;
@@ -8,15 +8,12 @@ import com.tech.project.AirbnbBackend.services.HotelService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping(path = "/api/v1/admin/hotels")
@@ -65,8 +62,8 @@ public class HotelAdminController {
     }
 
     @GetMapping
-    public ResponseEntity<List<HotelDto>> getAllHotels() {
-        return ResponseEntity.ok(hotelService.getAllHotels());
+    public ResponseEntity<List<HotelDto>> getAllHotelsByOwner() {
+        return ResponseEntity.ok(hotelService.getAllHotelsByOwner());
     }
 
     @GetMapping("/{hotelId}/bookings")
