@@ -1,5 +1,6 @@
 package com.tech.project.AirbnbBackend.controllers.user;
 
+import com.tech.project.AirbnbBackend.advice.ApiResponse;
 import com.tech.project.AirbnbBackend.dto.BookingDto;
 import com.tech.project.AirbnbBackend.dto.BookingRequest;
 import com.tech.project.AirbnbBackend.dto.GuestDto;
@@ -7,6 +8,7 @@ import com.tech.project.AirbnbBackend.services.BookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
@@ -43,5 +45,21 @@ public class HotelBookingController {
     @PostMapping("/{bookingId}/status")
     public ResponseEntity<Map<String,String>> getBookingStatus(@PathVariable Long bookingId){
         return ResponseEntity.ok(Map.of("status",bookingService.getBookingStatus(bookingId)));
+    }
+
+    @GetMapping("/myBookings")
+    public ResponseEntity<List<BookingDto>>getMyBookings(){
+        return ResponseEntity.ok(bookingService.getMyBookings());
+    }
+
+    @PreAuthorize("hasRole('HOTEL_MANAGER')")
+    @PostMapping("/{bookingId}/check-in")
+    public ResponseEntity<ApiResponse<String>> checkIn(@PathVariable Long bookingId) {
+
+        bookingService.updateBookingStatusInCheckIn(bookingId);
+
+        ApiResponse<String> response = new ApiResponse<>("Checked-in successful");
+
+        return ResponseEntity.ok(response);
     }
 }

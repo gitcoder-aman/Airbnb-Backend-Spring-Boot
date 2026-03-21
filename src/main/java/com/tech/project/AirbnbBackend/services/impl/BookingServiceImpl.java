@@ -26,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -373,6 +374,55 @@ public class BookingServiceImpl implements BookingService {
                 .stream()
                 .map((element) -> modelMapper.map(element, BookingDto.class))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void updateBookingStatusInCheckIn(Long bookingId) {
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        LocalDate now = LocalDate.now();
+
+        //  Too early
+        if (now.isBefore(booking.getCheckInDate())) {
+            throw new RuntimeException("Too early to check-in");
+        }
+
+        //  Too late
+        if (now.isAfter(booking.getCheckOutDate())) {
+            throw new RuntimeException("Check-in time expired");
+        }
+
+        //  Already checked-in
+        if (booking.getBookingStatus() == BookingStatus.CHECKED_IN) {
+            throw new RuntimeException("Already checked-in");
+        }
+
+        //  Wrong status
+        if (booking.getBookingStatus() != BookingStatus.CONFIRMED) {
+            throw new RuntimeException("Only confirmed bookings can be checked-in");
+        }
+
+        //  Update
+        booking.setBookingStatus(BookingStatus.CHECKED_IN);
+        bookingRepository.save(booking);
+    }
+
+//    @Scheduled(cron = "0 0 * * * *") // every hour  // this is updated by system
+    @Scheduled(cron = "0 * * * * *") // every minute
+    public void updateCompletedBookings() {
+        List<Booking> bookings = bookingRepository
+                .findByBookingStatusAndCheckOutDateBefore(
+                        BookingStatus.CHECKED_IN,
+                        LocalDate.now()
+                );
+
+        for (Booking booking : bookings) {
+            booking.setBookingStatus(BookingStatus.COMPLETED);
+        }
+
+        bookingRepository.saveAll(bookings);
     }
 
     public boolean hasBookingExpired(Booking booking) {

@@ -16,17 +16,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-    private final BookingService bookingService;
 
     @PutMapping("/profile")
     public ResponseEntity<Void>updateProfile(@RequestBody ProfileUpdateRequestDto profileUpdateRequestDto){
         userService.updateProfile(profileUpdateRequestDto);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/myBookings")
-    public ResponseEntity<List<BookingDto>>getMyBookings(){
-        return ResponseEntity.ok(bookingService.getMyBookings());
     }
 
     @GetMapping("/profile")

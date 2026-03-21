@@ -1,6 +1,5 @@
 package com.tech.project.AirbnbBackend.repositories;
 
-import com.tech.project.AirbnbBackend.dto.HotelDto;
 import com.tech.project.AirbnbBackend.entities.Hotel;
 import com.tech.project.AirbnbBackend.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;

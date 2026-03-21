@@ -2,9 +2,12 @@ package com.tech.project.AirbnbBackend.repositories;
 
 import com.tech.project.AirbnbBackend.entities.Booking;
 import com.tech.project.AirbnbBackend.entities.Hotel;
+import com.tech.project.AirbnbBackend.entities.Room;
 import com.tech.project.AirbnbBackend.entities.User;
+import com.tech.project.AirbnbBackend.entities.enums.BookingStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -17,4 +20,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking>findByHotelAndCreatedAtBetween(Hotel hotel, LocalDateTime startDate, LocalDateTime endDate);
 
     List<Booking>findByUser(User user);
+
+    List<Booking> findByBookingStatusAndCheckOutDateBefore(BookingStatus bookingStatus, LocalDate now);
+
+    boolean existsByUserAndRoomAndBookingStatus(User user, Room room, BookingStatus bookingStatus);
 }
