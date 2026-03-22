@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -46,6 +47,8 @@ public class WebSecurityConfig {
                         .requestMatchers("/auth/**").anonymous()
                         .requestMatchers("/bookings/**").authenticated()
                         .requestMatchers("/users/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/rooms/*/reviews").hasRole("GUEST")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").permitAll()
                         .anyRequest().permitAll())
                 .exceptionHandling(exHandlingConfig -> exHandlingConfig.accessDeniedHandler(accessDeniedHandler()));
 

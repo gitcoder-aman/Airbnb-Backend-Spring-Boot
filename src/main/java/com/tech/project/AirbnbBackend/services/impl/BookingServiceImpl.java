@@ -409,8 +409,8 @@ public class BookingServiceImpl implements BookingService {
         bookingRepository.save(booking);
     }
 
-//    @Scheduled(cron = "0 0 * * * *") // every hour  // this is updated by system
-    @Scheduled(cron = "0 * * * * *") // every minute
+    @Scheduled(cron = "0 0 * * * *") // every hour  // this is updated by system
+//    @Scheduled(cron = "0 * * * * *") // every minute
     public void updateCompletedBookings() {
         List<Booking> bookings = bookingRepository
                 .findByBookingStatusAndCheckOutDateBefore(

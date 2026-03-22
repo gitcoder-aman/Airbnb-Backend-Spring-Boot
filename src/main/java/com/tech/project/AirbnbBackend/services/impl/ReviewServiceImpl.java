@@ -6,6 +6,7 @@ import com.tech.project.AirbnbBackend.entities.Review;
 import com.tech.project.AirbnbBackend.entities.Room;
 import com.tech.project.AirbnbBackend.entities.User;
 import com.tech.project.AirbnbBackend.entities.enums.BookingStatus;
+import com.tech.project.AirbnbBackend.exception.ResourceNotFoundException;
 import com.tech.project.AirbnbBackend.repositories.BookingRepository;
 import com.tech.project.AirbnbBackend.repositories.ReviewRepository;
 import com.tech.project.AirbnbBackend.repositories.RoomRepository;
@@ -21,6 +22,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import javax.sound.sampled.ReverbType;
 
 import static com.tech.project.AirbnbBackend.utils.AppUtils.getCurrentUser;
 
@@ -38,26 +41,32 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public ReviewResponseDto createReview(Long roomId, ReviewRequestDto reviewRequestDto) {
 
-        User user = getCurrentUser();   // logged-in user
+        User user = getCurrentUser();
 
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
-        //  Check if user completed booking
-        boolean hasCompletedBooking = bookingRepository
-                .existsByUserAndRoomAndBookingStatus(user, room, BookingStatus.COMPLETED);
+        //  Check already reviewed
+        boolean alreadyReviewed = reviewRepository.existsByUserAndRoom(user, room);
 
-        // Map DTO → Entity
+        if (alreadyReviewed) {
+            throw new RuntimeException("You have already reviewed this room");
+        }
+
+        //  Check booking completed
+        Boolean hasCompletedBooking = isUserBookingCompletedForReview(roomId);
+
+        if (!hasCompletedBooking) {
+            throw new RuntimeException("You can only review after completing your stay");
+        }
+
         Review review = modelMapper.map(reviewRequestDto, Review.class);
         review.setUser(user);
         review.setRoom(room);
-
-        //  Set verified flag
-        review.setVerified(hasCompletedBooking);
+        review.setVerified(true);
 
         Review savedReview = reviewRepository.save(review);
 
-        // Convert to DTO
         ReviewResponseDto response = modelMapper.map(savedReview, ReviewResponseDto.class);
         response.setUserName(user.getName());
 
@@ -82,6 +91,42 @@ public class ReviewServiceImpl implements ReviewService {
             return dto;
         });
     }
+
+    @Override
+    public void deleteReview(Long reviewId) {
+
+        reviewRepository.findById(reviewId)
+                .orElseThrow(()->new ResourceNotFoundException("Review not found"));
+
+        reviewRepository.deleteById(reviewId);
+    }
+
+    @Override
+    public ReviewResponseDto updateReview(Long reviewId, ReviewRequestDto reviewRequestDto) {
+
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(()->new ResourceNotFoundException("Review not found"));
+
+        review.setComment(reviewRequestDto.getComment());
+        review.setPhotos(reviewRequestDto.getPhotos());
+        review.setRating(reviewRequestDto.getRating());
+
+        review = reviewRepository.save(review);
+        return modelMapper.map(review,ReviewResponseDto.class);
+    }
+
+    @Override
+    public Boolean isUserBookingCompletedForReview(Long roomId) {
+
+        User user = getCurrentUser();
+
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("Room not found"));
+        //  Check booking completed
+        return bookingRepository
+                .existsByUserAndRoomAndBookingStatus(user, room, BookingStatus.COMPLETED);
+    }
+
     public static class ReviewSpecification {
 
         public static Specification<Review> filterReviews(Long roomId, Boolean hasPhotos) {

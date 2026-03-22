@@ -9,12 +9,6 @@ public interface ReviewService {
 
     ReviewResponseDto createReview(Long roomId,ReviewRequestDto reviewRequestDto);
 
-//    List<ReviewResponseDto> getAllReviews(Long roomId);
-//
-//    List<ReviewResponseDto>getLatestReviews(Long roomId);
-//
-//    List<ReviewResponseDto>getReviewsWithPhots(Long roomId);
-
     Page<ReviewResponseDto> getReviews(
             Long roomId,
             int page,
@@ -23,5 +17,9 @@ public interface ReviewService {
             String direction,
             Boolean hasPhotos
     );
+    void deleteReview(Long reviewId);
 
+    ReviewResponseDto updateReview(Long reviewId,ReviewRequestDto reviewRequestDto);
+
+    Boolean isUserBookingCompletedForReview(Long roomId);
 }

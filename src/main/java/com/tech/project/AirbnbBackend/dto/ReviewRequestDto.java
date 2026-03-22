@@ -8,9 +8,6 @@ import lombok.Setter;
 @Setter
 public class ReviewRequestDto {
 
-//    @NotNull(message = "Room ID is required")
-//    private Long roomId;
-
     @Min(value = 1, message = "Rating must be at least 1")
     @Max(value = 5, message = "Rating must be at most 5")
     private int rating;
@@ -20,4 +17,5 @@ public class ReviewRequestDto {
 
     @Size(max = 5, message = "Maximum 5 photos allowed")
     private String[] photos;
+
 }
