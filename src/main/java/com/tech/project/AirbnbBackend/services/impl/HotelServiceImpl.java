@@ -99,7 +99,7 @@ public class HotelServiceImpl implements HotelService {
 
 
         //just we have to assure the admin can delete own hotel detail not other
-        User user = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        User user = getCurrentUser();
         assert user != null;
         if (!user.equals(hotel.getOwner())) {
             throw new UnAuthorisedException("This user does not own this hotel with id: " + id);
@@ -126,7 +126,7 @@ public class HotelServiceImpl implements HotelService {
 //        });  //TODO: This Reflection use is not best practices
 
         //just we have to assure the admin can update own hotel detail not other
-        User user = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        User user = getCurrentUser();
         assert user != null;
         if (!user.equals(hotel.getOwner())) {
             throw new UnAuthorisedException("This user does not own this hotel with id: " + hotelId);
@@ -174,7 +174,7 @@ public class HotelServiceImpl implements HotelService {
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID" + hotelId));
 
         //just we have to assure the admin can activate own hotel not other
-        User user = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        User user = getCurrentUser();
         assert user != null;
         if (!user.getId().equals(hotel.getOwner().getId())) {
             throw new UnAuthorisedException("This user does not own this hotel with id: " + hotelId);

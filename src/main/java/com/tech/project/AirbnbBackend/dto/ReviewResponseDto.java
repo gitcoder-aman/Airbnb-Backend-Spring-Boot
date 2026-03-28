@@ -13,6 +13,8 @@ public class ReviewResponseDto {
 
     private String userName;
 
+    private Long userId;
+
     private int rating;
 
     private String comment;

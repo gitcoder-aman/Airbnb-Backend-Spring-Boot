@@ -19,7 +19,7 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PreAuthorize("hasRole('GUEST')")
-    @PostMapping("/rooms/{roomId}/reviews")
+    @PostMapping(value = "/rooms/{roomId}/reviews")
     public ResponseEntity<ApiResponse<ReviewResponseDto>> createReview(
             @Valid @RequestBody ReviewRequestDto reviewRequestDto,
             @PathVariable Long roomId

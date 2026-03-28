@@ -7,12 +7,14 @@ import com.tech.project.AirbnbBackend.entities.Room;
 import com.tech.project.AirbnbBackend.entities.User;
 import com.tech.project.AirbnbBackend.entities.enums.BookingStatus;
 import com.tech.project.AirbnbBackend.exception.ResourceNotFoundException;
+import com.tech.project.AirbnbBackend.exception.UnAuthorisedException;
 import com.tech.project.AirbnbBackend.repositories.BookingRepository;
 import com.tech.project.AirbnbBackend.repositories.ReviewRepository;
 import com.tech.project.AirbnbBackend.repositories.RoomRepository;
 import com.tech.project.AirbnbBackend.security.AuthService;
 import com.tech.project.AirbnbBackend.services.ReviewService;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -69,6 +71,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         ReviewResponseDto response = modelMapper.map(savedReview, ReviewResponseDto.class);
         response.setUserName(user.getName());
+        response.setUserId(user.getId());
 
         return response;
     }
@@ -88,24 +91,36 @@ public class ReviewServiceImpl implements ReviewService {
         return reviews.map(review -> {
             ReviewResponseDto dto = modelMapper.map(review, ReviewResponseDto.class);
             dto.setUserName(review.getUser().getName());
+            dto.setUserId(review.getUser().getId());
             return dto;
         });
     }
 
+    @Transactional
     @Override
     public void deleteReview(Long reviewId) {
 
-        reviewRepository.findById(reviewId)
-                .orElseThrow(()->new ResourceNotFoundException("Review not found"));
+        User user = getCurrentUser();
 
-        reviewRepository.deleteById(reviewId);
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Review not found with id: " + reviewId
+                        )
+                );
+        if(!user.getId().equals(review.getUser().getId())){
+            throw new UnAuthorisedException("This review does not own this user with id: " +reviewId);
+        }
+
+        reviewRepository.delete(review);
     }
 
+    @Transactional
     @Override
     public ReviewResponseDto updateReview(Long reviewId, ReviewRequestDto reviewRequestDto) {
 
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(()->new ResourceNotFoundException("Review not found"));
+                .orElseThrow(()->new ResourceNotFoundException("Review not found with id: " + reviewId));
 
         review.setComment(reviewRequestDto.getComment());
         review.setPhotos(reviewRequestDto.getPhotos());

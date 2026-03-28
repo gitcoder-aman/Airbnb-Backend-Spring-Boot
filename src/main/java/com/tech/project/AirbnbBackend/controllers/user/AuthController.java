@@ -4,6 +4,7 @@ import com.tech.project.AirbnbBackend.dto.LoginDto;
 import com.tech.project.AirbnbBackend.dto.LoginResponseDto;
 import com.tech.project.AirbnbBackend.dto.SignUpRequestDto;
 import com.tech.project.AirbnbBackend.dto.UserDto;
+import com.tech.project.AirbnbBackend.entities.User;
 import com.tech.project.AirbnbBackend.security.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
+
+import static com.tech.project.AirbnbBackend.utils.AppUtils.getCurrentUser;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -39,7 +42,6 @@ public class AuthController {
         Cookie cookie = new Cookie("refreshToken",token[1]);
         cookie.setHttpOnly(true);
         httpServletResponse.addCookie(cookie);
-
         return new ResponseEntity<>(new LoginResponseDto(token[0]),HttpStatus.OK);
     }
 
@@ -51,6 +53,7 @@ public class AuthController {
                 .map(Cookie::getValue)
                 .orElseThrow(()->new AuthenticationServiceException("Refresh token not found insides the Cookies"));
         String accessToken = authService.refreshToken(refreshToken);
+        User user = getCurrentUser();
         return ResponseEntity.ok(new LoginResponseDto(accessToken));
     }
 

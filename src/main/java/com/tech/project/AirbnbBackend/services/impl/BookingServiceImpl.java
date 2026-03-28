@@ -336,6 +336,7 @@ public class BookingServiceImpl implements BookingService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public HotelReportDto getHotelReport(Long hotelId, LocalDate startDate, LocalDate endDate) {
         Hotel hotel = hotelRepository.findById(hotelId).orElseThrow(() -> new ResourceNotFoundException("Hotel not found with hotel Id: " + hotelId));
@@ -409,16 +410,18 @@ public class BookingServiceImpl implements BookingService {
         bookingRepository.save(booking);
     }
 
-    @Scheduled(cron = "0 0 * * * *") // every hour  // this is updated by system
-//    @Scheduled(cron = "0 * * * * *") // every minute
+//    @Scheduled(cron = "0 0 * * * *") // every hour  // this is updated by system
+    @Scheduled(cron = "0 * * * * *") // every minute
     public void updateCompletedBookings() {
         List<Booking> bookings = bookingRepository
                 .findByBookingStatusAndCheckOutDateBefore(
                         BookingStatus.CHECKED_IN,
                         LocalDate.now()
                 );
+        log.info("Scheduler running at: {},{}", LocalDateTime.now(),bookings.size());
 
         for (Booking booking : bookings) {
+            log.info("Scheduler running at: booking detail:{},{}",booking.getId(),booking.getBookingStatus());
             booking.setBookingStatus(BookingStatus.COMPLETED);
         }
 
