@@ -13,6 +13,7 @@ import com.tech.project.AirbnbBackend.repositories.ReviewRepository;
 import com.tech.project.AirbnbBackend.repositories.RoomRepository;
 import com.tech.project.AirbnbBackend.security.AuthService;
 import com.tech.project.AirbnbBackend.services.ReviewService;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -108,8 +109,8 @@ public class ReviewServiceImpl implements ReviewService {
                                 "Review not found with id: " + reviewId
                         )
                 );
-        if(!user.getId().equals(review.getUser().getId())){
-            throw new UnAuthorisedException("This review does not own this user with id: " +reviewId);
+        if (!user.getId().equals(review.getUser().getId())) {
+            throw new UnAuthorisedException("This review does not own this user with id: " + reviewId);
         }
 
         reviewRepository.delete(review);
@@ -120,14 +121,14 @@ public class ReviewServiceImpl implements ReviewService {
     public ReviewResponseDto updateReview(Long reviewId, ReviewRequestDto reviewRequestDto) {
 
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(()->new ResourceNotFoundException("Review not found with id: " + reviewId));
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found with id: " + reviewId));
 
         review.setComment(reviewRequestDto.getComment());
         review.setPhotos(reviewRequestDto.getPhotos());
         review.setRating(reviewRequestDto.getRating());
 
         review = reviewRepository.save(review);
-        return modelMapper.map(review,ReviewResponseDto.class);
+        return modelMapper.map(review, ReviewResponseDto.class);
     }
 
     @Override
@@ -144,13 +145,31 @@ public class ReviewServiceImpl implements ReviewService {
 
     public static class ReviewSpecification {
 
-        public static Specification<Review> filterReviews(Long roomId, Boolean hasPhotos) {
+        public static Specification<Review> filterReviews(
+                Long roomId,
+                Boolean hasPhotos
+        ) {
             return (root, query, cb) -> {
 
-                Predicate predicate = cb.equal(root.get("room").get("id"), roomId);
+                Predicate predicate =
+                        cb.equal(
+                                root.get("room").get("id"),
+                                roomId
+                        );
 
                 if (hasPhotos != null && hasPhotos) {
-                    predicate = cb.and(predicate, cb.isNotNull(root.get("photos")));
+
+                    Expression<Integer> count =
+                            cb.function(
+                                    "cardinality",
+                                    Integer.class,
+                                    root.get("photos")
+                            );
+
+                    predicate = cb.and(
+                            predicate,
+                            cb.greaterThan(count, 0)
+                    );
                 }
 
                 return predicate;

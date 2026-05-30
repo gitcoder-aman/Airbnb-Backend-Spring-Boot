@@ -8,10 +8,7 @@ import com.stripe.model.Refund;
 import com.stripe.model.StripeObject;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.RefundCreateParams;
-import com.tech.project.AirbnbBackend.dto.BookingDto;
-import com.tech.project.AirbnbBackend.dto.BookingRequest;
-import com.tech.project.AirbnbBackend.dto.GuestDto;
-import com.tech.project.AirbnbBackend.dto.HotelReportDto;
+import com.tech.project.AirbnbBackend.dto.*;
 import com.tech.project.AirbnbBackend.entities.*;
 import com.tech.project.AirbnbBackend.entities.enums.BookingStatus;
 import com.tech.project.AirbnbBackend.exception.BookingExpiredException;
@@ -74,15 +71,20 @@ public class BookingServiceImpl implements BookingService {
                 .findById(bookingRequest.getRoomId())
                 .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID" + bookingRequest.getRoomId()));
 
+        log.info("checkInData:{}",bookingRequest.getCheckInDate());
+        log.info("checkInData:{}",bookingRequest.getCheckOutDate());
+        log.info("checkInData:{}",bookingRequest.getNumberOfRooms());
+        log.info("checkInData:{}",bookingRequest.getRoomId());
         List<Inventory> inventoryList = inventoryRepository.findAndLockAvailableInventory(
                 room.getId(),
                 bookingRequest.getCheckInDate(),
                 bookingRequest.getCheckOutDate(),
                 bookingRequest.getNumberOfRooms());
 
-        long daysCount = ChronoUnit.DAYS.between(bookingRequest.getCheckInDate(), bookingRequest.getCheckInDate()) + 1;
-        log.info("inventoryList size:{}", inventoryList);
-        log.info("dayCount size:{}", inventoryList);
+        long daysCount = ChronoUnit.DAYS.between(bookingRequest.getCheckInDate(), bookingRequest.getCheckOutDate()) + 1;
+        log.info("inventoryList size:{}", inventoryList.size());
+        log.info("checkInData:{}", modelMapper.map(inventoryList.getFirst(), InventoryDto.class));
+        log.info("dayCount size:{}", daysCount);
 
         if (inventoryList.size() < daysCount) {
             throw new IllegalStateException("Room is not available anymore");
@@ -430,5 +432,38 @@ public class BookingServiceImpl implements BookingService {
 
     public boolean hasBookingExpired(Booking booking) {
         return booking.getCreatedAt().plusMinutes(BOOKING_EXPIRATION_TIME_IN_MINUTES).isBefore(LocalDateTime.now());
+    }
+
+    @Scheduled(cron = "0 */10 * * * *")
+    @Transactional
+    public void expireBookings() {
+
+        LocalDateTime expiryTime = LocalDateTime.now().minusMinutes(10);
+
+        List<Booking> expiredBookings =
+                bookingRepository.findByBookingStatusInAndCreatedAtBefore(
+                        List.of(
+                                BookingStatus.RESERVED,
+                                BookingStatus.GUEST_ADDED,
+                                BookingStatus.PAYMENT_PENDING
+                        ),
+                        expiryTime
+                );
+
+        for (Booking booking : expiredBookings) {
+            booking.setBookingStatus(BookingStatus.EXPIRED);
+
+            // release inventory
+            inventoryRepository.cancelBooking(
+                    booking.getRoom().getId(),
+                    booking.getCheckInDate(),
+                    booking.getCheckOutDate(),
+                    booking.getRoomCount()
+            );
+        }
+
+        bookingRepository.saveAll(expiredBookings);
+
+        log.info("Expired {} bookings", expiredBookings.size());
     }
 }

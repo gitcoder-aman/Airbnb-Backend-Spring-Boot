@@ -24,4 +24,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByBookingStatusAndCheckOutDateBefore(BookingStatus bookingStatus, LocalDate now);
 
     boolean existsByUserAndRoomAndBookingStatus(User user, Room room, BookingStatus bookingStatus);
+
+
+    List<Booking> findByBookingStatusInAndCreatedAtBefore(List<BookingStatus> reserved, LocalDateTime expiryTime);
 }
