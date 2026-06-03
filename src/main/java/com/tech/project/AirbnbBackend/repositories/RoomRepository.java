@@ -9,6 +9,5 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface RoomRepository extends JpaRepository<Room, Long> {
-    @Query("SELECT MIN(r.basePrice) FROM Room r WHERE r.hotel.id = :hotelId")
-    BigDecimal findMinPriceByHotelId(@Param("hotelId") Long hotelId);
+
 }

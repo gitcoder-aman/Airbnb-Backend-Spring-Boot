@@ -64,9 +64,6 @@ public class RoomServiceImpl implements RoomService {
             inventoryService.initializeRoomForAYear(room);
         }
 
-        //update the hotel starting price
-        BigDecimal startingPrice =  roomRepository.findMinPriceByHotelId(hotelId);
-        hotel.setStartingPrice(startingPrice);
         hotelRepository.save(hotel);
 
         return modelMapper.map(room, RoomDto.class);

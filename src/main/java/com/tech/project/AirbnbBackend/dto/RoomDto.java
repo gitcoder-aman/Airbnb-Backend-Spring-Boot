@@ -1,5 +1,6 @@
 package com.tech.project.AirbnbBackend.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -19,6 +20,8 @@ public class RoomDto {
     @NotNull(message = "Base price is required")
     @DecimalMin(value = "0.0", inclusive = false, message = "Base price must be greater than 0")
     private BigDecimal basePrice;
+
+    private BigDecimal totalPrice;
 
     @NotNull(message = "Photos array cannot be null")
     @Size(min = 1, message = "At least one photo is required")

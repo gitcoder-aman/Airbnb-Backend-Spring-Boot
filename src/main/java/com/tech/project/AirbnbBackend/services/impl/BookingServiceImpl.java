@@ -51,7 +51,7 @@ public class BookingServiceImpl implements BookingService {
     private final GuestRepository guestRepository;
     private final ModelMapper modelMapper;
     private final BookingExpirationManager expirationManager;
-    private final int BOOKING_EXPIRATION_TIME_IN_MINUTES = 10;
+    private final int BOOKING_EXPIRATION_TIME_IN_MINUTES = 1;
     private final CheckoutService checkoutService;
     private final PriceService priceService;
 
@@ -100,7 +100,10 @@ public class BookingServiceImpl implements BookingService {
 
         //calculate total price
         BigDecimal priceForOneRoom = priceService.calculateTotalPrice(inventoryList);
+        log.info("price:{}", priceForOneRoom);
+
         BigDecimal totalPrice = priceForOneRoom.multiply(BigDecimal.valueOf(bookingRequest.getNumberOfRooms()));
+        log.info("price1:{}", totalPrice);
 
         Booking booking = Booking.builder()
                 .bookingStatus(BookingStatus.RESERVED)
@@ -434,11 +437,12 @@ public class BookingServiceImpl implements BookingService {
         return booking.getCreatedAt().plusMinutes(BOOKING_EXPIRATION_TIME_IN_MINUTES).isBefore(LocalDateTime.now());
     }
 
-    @Scheduled(cron = "0 */10 * * * *")
+//    @Scheduled(cron = "0 */10 * * * *")
+    @Scheduled(cron = "0 * * * * *") // every minute
     @Transactional
     public void expireBookings() {
 
-        LocalDateTime expiryTime = LocalDateTime.now().minusMinutes(10);
+        LocalDateTime expiryTime = LocalDateTime.now().minusMinutes(1);
 
         List<Booking> expiredBookings =
                 bookingRepository.findByBookingStatusInAndCreatedAtBefore(

@@ -43,6 +43,7 @@ public class Hotel {
     @Embedded
     private HotelContactInfo contactInfo;
 
+    @Column(precision = 10, scale = 2)
     private BigDecimal startingPrice;
 
     @Column(nullable = false)

@@ -4,11 +4,13 @@ import com.tech.project.AirbnbBackend.dto.HotelDto;
 import com.tech.project.AirbnbBackend.dto.HotelInfoDto;
 import com.tech.project.AirbnbBackend.dto.RoomDto;
 import com.tech.project.AirbnbBackend.entities.Hotel;
+import com.tech.project.AirbnbBackend.entities.Inventory;
 import com.tech.project.AirbnbBackend.entities.Room;
 import com.tech.project.AirbnbBackend.entities.User;
 import com.tech.project.AirbnbBackend.exception.ResourceNotFoundException;
 import com.tech.project.AirbnbBackend.exception.UnAuthorisedException;
 import com.tech.project.AirbnbBackend.repositories.HotelRepository;
+import com.tech.project.AirbnbBackend.repositories.InventoryRepository;
 import com.tech.project.AirbnbBackend.repositories.RoomRepository;
 import com.tech.project.AirbnbBackend.services.HotelService;
 import com.tech.project.AirbnbBackend.services.InventoryService;
@@ -20,6 +22,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -35,6 +40,7 @@ public class HotelServiceImpl implements HotelService {
     private final ModelMapper modelMapper;
     private final InventoryService inventoryService;
     private final RoomRepository roomRepository;
+    private final InventoryRepository inventoryRepository;
 
     @Override
     public HotelDto createNewHotel(HotelDto hotelDto) {
@@ -46,7 +52,7 @@ public class HotelServiceImpl implements HotelService {
 
         User user = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
         hotel.setOwner(user);
-        hotel.setStartingPrice(BigDecimal.ZERO);
+//        hotel.setStartingPrice(BigDecimal.ZERO);
         hotel = hotelRepository.save(hotel);
         log.info("Created a new Hotel with Id: {}", hotel.getId());
         return modelMapper.map(hotel, HotelDto.class);
@@ -203,31 +209,60 @@ public class HotelServiceImpl implements HotelService {
     @Override
     public List<HotelDto> getAllHotelsByOwner() {
         User user = getCurrentUser();
-        log.info("Getting all hotels for this admin user with id :{}",user.getId());
+        log.info("Getting all hotels for this admin user with id :{}", user.getId());
         List<Hotel> hotels = hotelRepository.findByOwner(user);
         return hotels.stream().map(
                 (hotel) -> modelMapper.map(hotel, HotelDto.class)
         ).collect(Collectors.toList());
     }
+
     @Override
-    public List<HotelDto> getAllHotels(){
+    public List<HotelDto> getAllHotels() {
         log.info("Getting all hotels for this user:");
         List<Hotel> hotels = hotelRepository.findByActiveTrue();
         return hotels.stream().map(
                 (hotel) -> modelMapper.map(hotel, HotelDto.class)
         ).collect(Collectors.toList());
     }
-
     @Override
-    public List<RoomDto> getRoomsByHotelId(Long hotelId) {
-        log.info("Getting all rooms of hotel with ID: {}", hotelId);
+    public List<RoomDto> getRoomsByHotelId(
+            Long hotelId,
+            LocalDate checkInDate,
+            LocalDate checkOutDate) {
+
+        if (checkInDate.isAfter(checkOutDate)
+                || checkInDate.isEqual(checkOutDate)) {
+            throw new IllegalArgumentException(
+                    "Check-out date must be after check-in date");
+        }
+
         Hotel hotel = hotelRepository
                 .findById(hotelId)
-                .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID" + hotelId));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Hotel not found with ID " + hotelId));
 
-        return hotel.getRooms()
-                .stream()
-                .map((element) -> modelMapper.map(element, RoomDto.class))
-                .collect(Collectors.toList());
+        List<RoomDto> rooms = new ArrayList<>();
+
+        for (Room room : hotel.getRooms()) {
+
+            RoomDto dto = modelMapper.map(room, RoomDto.class);
+
+            List<Inventory> inventories =
+                    inventoryRepository.findInventoriesBetweenDates(
+                            hotelId,
+                            room.getId(),
+                            checkInDate,
+                            checkOutDate);
+
+            BigDecimal totalPrice = inventories.stream()
+                    .map(Inventory::getPrice)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            dto.setTotalPrice(totalPrice);
+
+            rooms.add(dto);
+        }
+
+        return rooms;
     }
 }

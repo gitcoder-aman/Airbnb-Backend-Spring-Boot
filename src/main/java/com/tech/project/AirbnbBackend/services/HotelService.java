@@ -5,6 +5,8 @@ import com.tech.project.AirbnbBackend.dto.HotelDto;
 import com.tech.project.AirbnbBackend.dto.HotelInfoDto;
 import com.tech.project.AirbnbBackend.dto.RoomDto;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface HotelService {
@@ -27,5 +29,5 @@ public interface HotelService {
 
     List<HotelDto>getAllHotels();
 
-    List<RoomDto> getRoomsByHotelId(Long hotelId);
+    List<RoomDto> getRoomsByHotelId(Long hotelId, LocalDate checkInDate, LocalDate checkOutDate);
 }

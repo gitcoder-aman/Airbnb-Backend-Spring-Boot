@@ -144,4 +144,36 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
             @Param("surgeFactor") BigDecimal surgeFactor,
             @Param("closed") Boolean closed
     );
+
+    @Query("""
+       SELECT i.price
+       FROM Inventory i
+       WHERE i.hotel.id = :hotelId
+         AND i.room.id = :roomId
+         AND i.date BETWEEN :checkInDate AND :checkOutDate
+       ORDER BY i.date
+       """)
+    List<BigDecimal> findPricesBetweenDates(
+            @Param("hotelId") Long hotelId,
+            @Param("roomId") Long roomId,
+            @Param("checkInDate") LocalDate checkInDate,
+            @Param("checkOutDate") LocalDate checkOutDate
+    );
+
+    @Query("""
+       SELECT i
+       FROM Inventory i
+       WHERE i.hotel.id = :hotelId
+         AND i.room.id = :roomId
+         AND i.date >= :checkInDate
+         AND i.date < :checkOutDate
+       ORDER BY i.date
+       """)
+    List<Inventory> findInventoriesBetweenDates(
+            Long hotelId,
+            Long roomId,
+            LocalDate checkInDate,
+            LocalDate checkOutDate);
+
+
 }

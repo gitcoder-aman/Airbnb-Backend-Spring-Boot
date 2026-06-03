@@ -44,7 +44,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public void initializeRoomForAYear(Room room) {
         LocalDate today = LocalDate.now();
-        LocalDate endDate = today.plusYears(1);
+        LocalDate endDate = today.plusMonths(1);
         for (;!today.isAfter(endDate);today = today.plusDays(1)){
             Inventory inventory = Inventory.builder()
                     .hotel(room.getHotel())
@@ -110,7 +110,7 @@ public class InventoryServiceImpl implements InventoryService {
                 .orElseThrow(()-> new ResourceNotFoundException("Room not found with id: "+roomId));
         User user = getCurrentUser();
         if(!user.equals(room.getHotel().getOwner())){
-            throw new AccessDeniedException("You are not the owner oh this id: "+roomId);
+            throw new AccessDeniedException("You are not the owner of this id: "+roomId);
         }
         inventoryRepository.getInventoryAndLockBeforeUpdate(
                 roomId,

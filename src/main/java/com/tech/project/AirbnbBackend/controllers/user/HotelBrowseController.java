@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RequestMapping(path = "/api/v1/hotels")
@@ -35,8 +36,18 @@ public class HotelBrowseController {
     }
     //  Get rooms of a hotel
     @GetMapping("/{hotelId}/rooms")
-    public ResponseEntity<List<RoomDto>> getRoomsByHotel(@PathVariable Long hotelId) {
-        return ResponseEntity.ok(hotelService.getRoomsByHotelId(hotelId));
+    public ResponseEntity<List<RoomDto>> getRoomsByHotel(
+            @PathVariable Long hotelId,
+            @RequestParam LocalDate checkInDate,
+            @RequestParam LocalDate checkOutDate) {
+
+        return ResponseEntity.ok(
+                hotelService.getRoomsByHotelId(
+                        hotelId,
+                        checkInDate,
+                        checkOutDate
+                )
+        );
     }
 
 
