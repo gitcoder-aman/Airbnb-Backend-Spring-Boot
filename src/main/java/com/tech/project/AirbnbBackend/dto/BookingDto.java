@@ -1,6 +1,7 @@
 package com.tech.project.AirbnbBackend.dto;
 
 import com.tech.project.AirbnbBackend.entities.enums.BookingStatus;
+import jakarta.persistence.Column;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -33,5 +34,10 @@ public class BookingDto {
 
     private Set<GuestDto> guests;
 
-    private BigDecimal amount;
+    private BigDecimal totalAmount;
+
+    private BigDecimal taxAmount;
+
+    private BigDecimal subTotalAmount;
+
 }

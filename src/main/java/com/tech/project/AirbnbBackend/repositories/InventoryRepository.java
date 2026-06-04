@@ -112,6 +112,22 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
             @Param("numberOfRooms") Integer numberOfRooms
     );
 
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            UPDATE Inventory i
+                        SET i.reservedCount=i.reservedCount-:numberOfRooms
+                            WHERE i.room.id=:roomId
+                            AND i.date BETWEEN :checkInDate AND :checkOutDate
+                            AND (i.totalCount-i.reservedCount) >= :numberOfRooms
+                            AND i.closed=false
+            """)
+    void releaseReserved(
+            @Param("roomId") Long roomId,
+            @Param("checkInDate") LocalDate checkInDate,
+            @Param("checkOutDate") LocalDate checkOutDate,
+            @Param("numberOfRooms") Integer numberOfRooms
+    );
+
     @Query("SELECT i FROM Inventory i WHERE i.room.id = :roomId")
     List<Inventory> findInventoryByRoomId(@Param("roomId") Long roomId);
 
@@ -144,22 +160,6 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
             @Param("surgeFactor") BigDecimal surgeFactor,
             @Param("closed") Boolean closed
     );
-
-    @Query("""
-       SELECT i.price
-       FROM Inventory i
-       WHERE i.hotel.id = :hotelId
-         AND i.room.id = :roomId
-         AND i.date BETWEEN :checkInDate AND :checkOutDate
-       ORDER BY i.date
-       """)
-    List<BigDecimal> findPricesBetweenDates(
-            @Param("hotelId") Long hotelId,
-            @Param("roomId") Long roomId,
-            @Param("checkInDate") LocalDate checkInDate,
-            @Param("checkOutDate") LocalDate checkOutDate
-    );
-
     @Query("""
        SELECT i
        FROM Inventory i

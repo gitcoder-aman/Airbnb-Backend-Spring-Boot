@@ -51,7 +51,7 @@ public class BookingServiceImpl implements BookingService {
     private final GuestRepository guestRepository;
     private final ModelMapper modelMapper;
     private final BookingExpirationManager expirationManager;
-    private final int BOOKING_EXPIRATION_TIME_IN_MINUTES = 1;
+    private final int BOOKING_EXPIRATION_TIME_IN_MINUTES = 3;
     private final CheckoutService checkoutService;
     private final PriceService priceService;
 
@@ -71,10 +71,6 @@ public class BookingServiceImpl implements BookingService {
                 .findById(bookingRequest.getRoomId())
                 .orElseThrow(() -> new ResourceNotFoundException("Room not found with ID" + bookingRequest.getRoomId()));
 
-        log.info("checkInData:{}",bookingRequest.getCheckInDate());
-        log.info("checkInData:{}",bookingRequest.getCheckOutDate());
-        log.info("checkInData:{}",bookingRequest.getNumberOfRooms());
-        log.info("checkInData:{}",bookingRequest.getRoomId());
         List<Inventory> inventoryList = inventoryRepository.findAndLockAvailableInventory(
                 room.getId(),
                 bookingRequest.getCheckInDate(),
@@ -82,9 +78,9 @@ public class BookingServiceImpl implements BookingService {
                 bookingRequest.getNumberOfRooms());
 
         long daysCount = ChronoUnit.DAYS.between(bookingRequest.getCheckInDate(), bookingRequest.getCheckOutDate()) + 1;
-        log.info("inventoryList size:{}", inventoryList.size());
-        log.info("checkInData:{}", modelMapper.map(inventoryList.getFirst(), InventoryDto.class));
-        log.info("dayCount size:{}", daysCount);
+//        log.info("inventoryList size:{}", inventoryList.size());
+//        log.info("checkInData:{}", modelMapper.map(inventoryList.getFirst(), InventoryDto.class));
+//        log.info("dayCount size:{}", daysCount);
 
         if (inventoryList.size() < daysCount) {
             throw new IllegalStateException("Room is not available anymore");
@@ -98,12 +94,20 @@ public class BookingServiceImpl implements BookingService {
                 bookingRequest.getNumberOfRooms()
         );
 
-        //calculate total price
-        BigDecimal priceForOneRoom = priceService.calculateTotalPrice(inventoryList);
-        log.info("price:{}", priceForOneRoom);
+        //find all inventories which user want to book inventory and get all those room inventory price
+        List<Inventory> inventories =
+                inventoryRepository.findInventoriesBetweenDates(
+                        bookingRequest.getHotelId(),
+                        bookingRequest.getRoomId(),
+                        bookingRequest.getCheckInDate(),
+                        bookingRequest.getCheckOutDate());
 
-        BigDecimal totalPrice = priceForOneRoom.multiply(BigDecimal.valueOf(bookingRequest.getNumberOfRooms()));
-        log.info("price1:{}", totalPrice);
+        BigDecimal subTotalPrice = inventories.stream()
+                .map(Inventory::getPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal taxPrice = subTotalPrice.multiply(BigDecimal.valueOf(0.10));
+        BigDecimal totalPrice = subTotalPrice.add(taxPrice);
 
         Booking booking = Booking.builder()
                 .bookingStatus(BookingStatus.RESERVED)
@@ -113,7 +117,9 @@ public class BookingServiceImpl implements BookingService {
                 .checkOutDate(bookingRequest.getCheckOutDate())
                 .user(getCurrentUser())
                 .roomCount(bookingRequest.getNumberOfRooms())
-                .amount(totalPrice)
+                .subTotalAmount(subTotalPrice)
+                .taxAmount(taxPrice)
+                .totalAmount(totalPrice)
                 .build();
 
         Booking saveBookingData = bookingRepository.save(booking);
@@ -364,7 +370,7 @@ public class BookingServiceImpl implements BookingService {
         BigDecimal totalRevenuesOfConfirmedBooking = bookings
                 .stream()
                 .filter(booking -> booking.getBookingStatus() == BookingStatus.CONFIRMED)
-                .map(Booking::getAmount)
+                .map(Booking::getTotalAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal avgRevenues = totalConfirmedBookings == 0 ? BigDecimal.ZERO :
@@ -438,7 +444,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
 //    @Scheduled(cron = "0 */10 * * * *")
-    @Scheduled(cron = "0 * * * * *") // every minute
+    @Scheduled(cron = "0 */3 * * * *")// every minute
     @Transactional
     public void expireBookings() {
 
@@ -457,8 +463,8 @@ public class BookingServiceImpl implements BookingService {
         for (Booking booking : expiredBookings) {
             booking.setBookingStatus(BookingStatus.EXPIRED);
 
-            // release inventory
-            inventoryRepository.cancelBooking(
+            // release reserved inventory
+            inventoryRepository.releaseReserved(
                     booking.getRoom().getId(),
                     booking.getCheckInDate(),
                     booking.getCheckOutDate(),
