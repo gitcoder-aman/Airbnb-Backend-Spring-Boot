@@ -77,10 +77,10 @@ public class BookingServiceImpl implements BookingService {
                 bookingRequest.getCheckOutDate(),
                 bookingRequest.getNumberOfRooms());
 
-        long daysCount = ChronoUnit.DAYS.between(bookingRequest.getCheckInDate(), bookingRequest.getCheckOutDate()) + 1;
+        long daysCount = ChronoUnit.DAYS.between(bookingRequest.getCheckInDate(), bookingRequest.getCheckOutDate());
 //        log.info("inventoryList size:{}", inventoryList.size());
 //        log.info("checkInData:{}", modelMapper.map(inventoryList.getFirst(), InventoryDto.class));
-//        log.info("dayCount size:{}", daysCount);
+        log.info("booking dayCount size:{}", daysCount);
 
         if (inventoryList.size() < daysCount) {
             throw new IllegalStateException("Room is not available anymore");
@@ -104,10 +104,14 @@ public class BookingServiceImpl implements BookingService {
 
         BigDecimal subTotalPrice = inventories.stream()
                 .map(Inventory::getPrice)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(BigDecimal.ZERO, BigDecimal::add).multiply(BigDecimal.valueOf(bookingRequest.getNumberOfRooms()));
+
+        log.info("booking subtotalPrice:{}", subTotalPrice);
 
         BigDecimal taxPrice = subTotalPrice.multiply(BigDecimal.valueOf(0.10));
+        log.info("booking taxPrice:{}", taxPrice);
         BigDecimal totalPrice = subTotalPrice.add(taxPrice);
+        log.info("booking totalPrice:{}", totalPrice);
 
         Booking booking = Booking.builder()
                 .bookingStatus(BookingStatus.RESERVED)
@@ -444,11 +448,11 @@ public class BookingServiceImpl implements BookingService {
     }
 
 //    @Scheduled(cron = "0 */10 * * * *")
-    @Scheduled(cron = "0 */3 * * * *")// every minute
+    @Scheduled(cron = "0 * * * * *")// every minute
     @Transactional
     public void expireBookings() {
 
-        LocalDateTime expiryTime = LocalDateTime.now().minusMinutes(1);
+        LocalDateTime expiryTime = LocalDateTime.now().minusMinutes(3);
 
         List<Booking> expiredBookings =
                 bookingRepository.findByBookingStatusInAndCreatedAtBefore(
