@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.tech.project</groupId>
-	<artifactId>AirbnbBackend</artifactId>
+	<artifactId>AtithiStayBackend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>AirbnbBackend</name>
 	<description>Airbnb Clone Project Backend Spring Boot</description>

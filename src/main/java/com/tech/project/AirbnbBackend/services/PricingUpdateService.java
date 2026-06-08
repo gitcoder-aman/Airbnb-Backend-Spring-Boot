@@ -52,22 +52,24 @@ public class PricingUpdateService {
 
     private void updateHotelPrices(Hotel hotel) {
 
-        log.info("Updating hotel prices for hotel Id:{} ",hotel.getId());
+        log.info("Updating hotel prices for hotel Id:{} ", hotel.getId());
         LocalDate checkInDate = LocalDate.now();
         LocalDate checkOutDate = LocalDate.now().plusYears(1);
 
         List<Inventory> inventoryList = inventoryRepository.findByHotelAndDateBetween(hotel, checkInDate, checkOutDate);
         updateInventoryPrices(inventoryList);
 
-        //updating the minimum price in hotel
-        BigDecimal minPrice = inventoryList.stream()
-                .map(Inventory::getPrice)
-                .min(BigDecimal::compareTo)
-                .orElse(BigDecimal.ZERO);
-
-        hotel.setStartingPrice(minPrice);
-
-        hotelRepository.save(hotel);
+//        log.info("Price update Inventory size:{} ",inventoryList.size());
+//
+//        //updating the minimum price room of hotel
+//        BigDecimal minPrice = inventoryList.stream()
+//                .map(Inventory::getPrice)
+//                .min(BigDecimal::compareTo)
+//                .orElse(BigDecimal.ZERO);
+//
+//        hotel.setStartingPrice(minPrice);
+//
+//        hotelRepository.save(hotel);
 
         updateHotelMinPrice(hotel, inventoryList, checkInDate, checkOutDate);
     }
@@ -79,15 +81,24 @@ public class PricingUpdateService {
                         (Inventory inventory) -> inventory.getDate(),
                         Collectors.mapping((Inventory inventory) -> inventory.getPrice(), Collectors.minBy(Comparator.naturalOrder()))
                 )).entrySet().stream()
-                .collect(Collectors.toMap(entry->entry.getKey(), entry -> entry.getValue().orElse(BigDecimal.ZERO)));
+                .collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue().orElse(BigDecimal.ZERO)));
 
         //Prepare HotelPrice entities in bulk
-        List<HotelMinPrice>hotelMinPrices = new ArrayList<>();
-        dailyMinPrices.forEach((date,price)->{
-            HotelMinPrice hotelMinPrice = hotelMinPriceRepository.findByHotelAndDate(hotel,date).orElse(new HotelMinPrice(hotel,date));
+        List<HotelMinPrice> hotelMinPrices = new ArrayList<>();
+        dailyMinPrices.forEach((date, price) -> {
+            HotelMinPrice hotelMinPrice = hotelMinPriceRepository.findByHotelAndDate(hotel, date).orElse(new HotelMinPrice(hotel, date));
             hotelMinPrice.setPrice(price);
             hotelMinPrices.add(hotelMinPrice);
         });
+
+//        BigDecimal minPrice = hotelMinPrices.stream()
+//                .map(HotelMinPrice::getPrice)
+//                .min(BigDecimal::compareTo)
+//                .orElse(BigDecimal.ZERO);
+//
+//        hotel.setStartingPrice(minPrice);
+//
+//        hotelRepository.save(hotel);
         //save all HotelPrice entities in bulk
         hotelMinPriceRepository.saveAll(hotelMinPrices);
     }
