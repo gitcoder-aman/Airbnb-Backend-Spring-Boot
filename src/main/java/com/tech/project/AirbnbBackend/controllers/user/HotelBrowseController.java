@@ -20,7 +20,7 @@ public class HotelBrowseController {
     private final InventoryService inventoryService;
     private final HotelService hotelService;
 
-    @GetMapping("/search")
+    @PostMapping("/search")
     public ResponseEntity<Page<HotelPriceDto>>searchHotels(@Valid @RequestBody HotelSearchRequest hotelSearchRequest){
         Page<HotelPriceDto> page = inventoryService.searchHotels(hotelSearchRequest);
         return ResponseEntity.ok(page);
@@ -31,8 +31,14 @@ public class HotelBrowseController {
         return ResponseEntity.ok(hotelInfoByIdResponse);
     }
     @GetMapping
-    public ResponseEntity<List<HotelDto>> getAllHotels() {
-        return ResponseEntity.ok(hotelService.getAllHotels());
+    public ResponseEntity<Page<HotelDto>> getAllHotels(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size
+    ) {
+
+        return ResponseEntity.ok(
+                hotelService.getAllHotels(page, size)
+        );
     }
     //  Get rooms of a hotel
     @GetMapping("/{hotelId}/rooms")

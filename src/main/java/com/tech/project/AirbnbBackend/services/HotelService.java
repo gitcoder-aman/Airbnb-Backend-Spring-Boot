@@ -4,6 +4,7 @@ package com.tech.project.AirbnbBackend.services;
 import com.tech.project.AirbnbBackend.dto.HotelDto;
 import com.tech.project.AirbnbBackend.dto.HotelInfoDto;
 import com.tech.project.AirbnbBackend.dto.RoomDto;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,7 +28,7 @@ public interface HotelService {
 
     List<HotelDto> getAllHotelsByOwner();
 
-    List<HotelDto>getAllHotels();
+    Page<HotelDto> getAllHotels(Integer page, Integer size);
 
     List<RoomDto> getRoomsByHotelId(Long hotelId, LocalDate checkInDate, LocalDate checkOutDate);
 }

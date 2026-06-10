@@ -25,7 +25,7 @@ public class HotelSearchRequest {
 
     @NotNull(message = "Number of rooms is required")
     @Min(value = 1, message = "At least one room must be requested")
-    private Integer numberOfRooms;
+    private Integer numberOfRooms = 1;
 
     @Min(value = 0, message = "Page index cannot be negative")
     private Integer page = 0;

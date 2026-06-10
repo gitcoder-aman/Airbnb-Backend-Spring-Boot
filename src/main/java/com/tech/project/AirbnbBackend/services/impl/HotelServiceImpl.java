@@ -9,6 +9,7 @@ import com.tech.project.AirbnbBackend.entities.Room;
 import com.tech.project.AirbnbBackend.entities.User;
 import com.tech.project.AirbnbBackend.exception.ResourceNotFoundException;
 import com.tech.project.AirbnbBackend.exception.UnAuthorisedException;
+import com.tech.project.AirbnbBackend.repositories.HotelMinPriceRepository;
 import com.tech.project.AirbnbBackend.repositories.HotelRepository;
 import com.tech.project.AirbnbBackend.repositories.InventoryRepository;
 import com.tech.project.AirbnbBackend.repositories.RoomRepository;
@@ -18,6 +19,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +45,7 @@ public class HotelServiceImpl implements HotelService {
     private final InventoryService inventoryService;
     private final RoomRepository roomRepository;
     private final InventoryRepository inventoryRepository;
+    private final HotelMinPriceRepository hotelMinPriceRepository;
 
     @Override
     public HotelDto createNewHotel(HotelDto hotelDto) {
@@ -115,6 +120,7 @@ public class HotelServiceImpl implements HotelService {
         for (Room room : hotel.getRooms()) {
             inventoryService.deleteAllInventories(room);
             roomRepository.deleteById(room.getId());
+            hotelMinPriceRepository.deleteByHotelId(hotel.getId());
         }
         hotelRepository.deleteById(id);
     }
@@ -217,12 +223,15 @@ public class HotelServiceImpl implements HotelService {
     }
 
     @Override
-    public List<HotelDto> getAllHotels() {
-        log.info("Getting all hotels for this user:");
-        List<Hotel> hotels = hotelRepository.findByActiveTrue();
-        return hotels.stream().map(
-                (hotel) -> modelMapper.map(hotel, HotelDto.class)
-        ).collect(Collectors.toList());
+    public Page<HotelDto> getAllHotels(Integer page, Integer size) {
+
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        log.info("Getting all active hotels");
+
+        return hotelRepository.findByActiveTrue(pageable)
+                .map(hotel -> modelMapper.map(hotel, HotelDto.class));
     }
     @Override
     public List<RoomDto> getRoomsByHotelId(
