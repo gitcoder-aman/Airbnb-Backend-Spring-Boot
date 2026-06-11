@@ -2,14 +2,21 @@ package com.tech.project.AirbnbBackend.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
 
 import jakarta.validation.constraints.*;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class RoomDto {
 
     private Long id;

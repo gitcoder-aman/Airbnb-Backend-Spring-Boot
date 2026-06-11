@@ -91,14 +91,15 @@ public class PricingUpdateService {
             hotelMinPrices.add(hotelMinPrice);
         });
 
-//        BigDecimal minPrice = hotelMinPrices.stream()
-//                .map(HotelMinPrice::getPrice)
-//                .min(BigDecimal::compareTo)
-//                .orElse(BigDecimal.ZERO);
-//
-//        hotel.setStartingPrice(minPrice);
-//
-//        hotelRepository.save(hotel);
+        //update the hotel starting price
+        BigDecimal minPrice = hotelMinPrices.stream()
+                .map(HotelMinPrice::getPrice)
+                .min(BigDecimal::compareTo)
+                .orElse(BigDecimal.ZERO);
+
+        hotel.setStartingPrice(minPrice);
+
+        hotelRepository.save(hotel);
         //save all HotelPrice entities in bulk
         hotelMinPriceRepository.saveAll(hotelMinPrices);
     }

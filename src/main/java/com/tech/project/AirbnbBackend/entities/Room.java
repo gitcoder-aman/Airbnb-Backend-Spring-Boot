@@ -2,8 +2,7 @@ package com.tech.project.AirbnbBackend.entities;
 
 import com.tech.project.AirbnbBackend.entities.enums.RoomType;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
