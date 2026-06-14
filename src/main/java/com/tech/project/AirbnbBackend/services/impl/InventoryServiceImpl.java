@@ -72,6 +72,7 @@ public class InventoryServiceImpl implements InventoryService {
     public Page<HotelPriceDto> searchHotels(HotelSearchRequest hotelSearchRequest) {
         Pageable pageable = PageRequest.of(hotelSearchRequest.getPage(),hotelSearchRequest.getSize());
         long dateCount = ChronoUnit.DAYS.between(hotelSearchRequest.getCheckInDate(),hotelSearchRequest.getCheckOutDate()) + 1;
+        log.info("@@dayCount:{}",dateCount);
 
 
         Page<HotelPriceDto> hotelsWithAvailableInventory = hotelMinPriceRepository.findHotelsWithAvailableInventory(
@@ -79,8 +80,11 @@ public class InventoryServiceImpl implements InventoryService {
                                                                             hotelSearchRequest.getCheckInDate(),
                                                                             hotelSearchRequest.getCheckOutDate(),
                                                                             hotelSearchRequest.getNumberOfRooms(),
+                                                                            hotelSearchRequest.getMaxPrice(),
                                                                             dateCount,
                                                                             pageable);
+
+        log.info("@@hotelWithAvailInven:{}",hotelsWithAvailableInventory.getContent().size());
 
         return hotelsWithAvailableInventory;
     }

@@ -51,7 +51,7 @@ public class BookingServiceImpl implements BookingService {
     private final GuestRepository guestRepository;
     private final ModelMapper modelMapper;
     private final BookingExpirationManager expirationManager;
-    private final int BOOKING_EXPIRATION_TIME_IN_MINUTES = 3;
+    private final int BOOKING_EXPIRATION_TIME_IN_MINUTES = 10;
     private final CheckoutService checkoutService;
     private final PriceService priceService;
 
@@ -448,7 +448,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
 //    @Scheduled(cron = "0 */10 * * * *")
-    @Scheduled(cron = "0 * * * * *")// every minute
+    @Scheduled(cron = "0 */10 * * * *")// every 10 minute
     @Transactional
     public void expireBookings() {
 
@@ -463,8 +463,16 @@ public class BookingServiceImpl implements BookingService {
                         ),
                         expiryTime
                 );
+        if (expiredBookings.isEmpty()) {
+            log.info("No expired bookings found");
+            return;
+        }
 
         for (Booking booking : expiredBookings) {
+
+            if (booking.getBookingStatus() == BookingStatus.EXPIRED) {
+                continue;  // skip the already has Expired booking
+            }
             booking.setBookingStatus(BookingStatus.EXPIRED);
 
             // release reserved inventory
@@ -473,6 +481,10 @@ public class BookingServiceImpl implements BookingService {
                     booking.getCheckInDate(),
                     booking.getCheckOutDate(),
                     booking.getRoomCount()
+            );
+            log.info(
+                    "Booking {} expired and inventory released",
+                    booking.getId()
             );
         }
 

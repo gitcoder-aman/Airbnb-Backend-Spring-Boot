@@ -102,7 +102,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
                         SET i.bookedCount=i.bookedCount-:numberOfRooms
                             WHERE i.room.id=:roomId
                             AND i.date BETWEEN :checkInDate AND :checkOutDate
-                            AND (i.totalCount-i.bookedCount) >= :numberOfRooms
+                            AND i.bookedCount >= :numberOfRooms
                             AND i.closed=false
             """)
     int cancelBooking(
@@ -118,7 +118,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
                         SET i.reservedCount=i.reservedCount-:numberOfRooms
                             WHERE i.room.id=:roomId
                             AND i.date BETWEEN :checkInDate AND :checkOutDate
-                            AND (i.totalCount-i.reservedCount) >= :numberOfRooms
+                            AND i.reservedCount >= :numberOfRooms
                             AND i.closed=false
             """)
     void releaseReserved(

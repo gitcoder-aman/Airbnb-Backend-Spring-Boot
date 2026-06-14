@@ -4,4 +4,5 @@ public interface AiService {
      String chat(String prompt);
 
      String extractCriteria(String prompt);
+
 }

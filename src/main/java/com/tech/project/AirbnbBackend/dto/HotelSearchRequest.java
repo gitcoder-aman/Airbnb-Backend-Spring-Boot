@@ -1,6 +1,6 @@
 package com.tech.project.AirbnbBackend.dto;
 
-import lombok.Data;
+import lombok.*;
 
 import java.time.LocalDate;
 
@@ -26,6 +26,8 @@ public class HotelSearchRequest {
     @NotNull(message = "Number of rooms is required")
     @Min(value = 1, message = "At least one room must be requested")
     private Integer numberOfRooms = 1;
+
+    private Double maxPrice;
 
     @Min(value = 0, message = "Page index cannot be negative")
     private Integer page = 0;

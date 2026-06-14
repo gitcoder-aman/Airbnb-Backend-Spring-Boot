@@ -13,8 +13,6 @@ public class SearchCriteria {
 
     private String city;
 
-    private Integer guests;
-
     private Double maxPrice;
 
     private LocalDate checkIn;

@@ -19,7 +19,7 @@ public interface HotelMinPriceRepository extends JpaRepository<HotelMinPrice,Lon
             SELECT new com.tech.project.AirbnbBackend.dto.HotelPriceDto(hmp.hotel,AVG(hmp.price))
                         FROM HotelMinPrice hmp WHERE hmp.hotel.city = :city
                                     AND hmp.hotel.active = TRUE
-                                    AND hmp.date BETWEEN :checkInDate AND :checkOutDate
+                                    AND hmp.date BETWEEN :checkInDate AND :checkOutDate AND (:maxPrices IS NULL OR hmp.price <= :maxPrices)
                                     AND NOT EXISTS(
                                                 SELECT 1 FROM Inventory inv
                                                             WHERE inv.hotel=hmp.hotel
@@ -33,13 +33,14 @@ public interface HotelMinPriceRepository extends JpaRepository<HotelMinPrice,Lon
                                                                       AND inv.date BETWEEN :checkInDate AND :checkOutDate
                                                                       AND (inv.totalCount - inv.bookedCount) < :numberOfRooms
                                                               )
-                        GROUP BY hmp.hotel
+                        GROUP BY hmp.hotel HAVING COUNT(DISTINCT hmp.date) = :dateCount
             """)
     Page<HotelPriceDto> findHotelsWithAvailableInventory(
             @Param("city") String city,
             @Param("checkInDate") LocalDate checkInDate,
             @Param("checkOutDate") LocalDate checkOutDate,
             @Param("numberOfRooms") Integer numberOfRooms,
+            @Param("maxPrices") Double maxPrices,
             @Param("dateCount") Long dateCount,
             Pageable pageable
     );

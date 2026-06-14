@@ -35,7 +35,7 @@ public class PricingUpdateService {
     private final PriceService priceService;
 
     //every 2 minutes
-    @Scheduled(cron = "0 */2 * * * *") //second,minute hour,day,month,week
+    @Scheduled(cron = "0 */10 * * * *")//second,minute hour,day,month,week
     public void updatePrice() {
         int page = 0;
         int batchSize = 100;
@@ -58,18 +58,6 @@ public class PricingUpdateService {
 
         List<Inventory> inventoryList = inventoryRepository.findByHotelAndDateBetween(hotel, checkInDate, checkOutDate);
         updateInventoryPrices(inventoryList);
-
-//        log.info("Price update Inventory size:{} ",inventoryList.size());
-//
-//        //updating the minimum price room of hotel
-//        BigDecimal minPrice = inventoryList.stream()
-//                .map(Inventory::getPrice)
-//                .min(BigDecimal::compareTo)
-//                .orElse(BigDecimal.ZERO);
-//
-//        hotel.setStartingPrice(minPrice);
-//
-//        hotelRepository.save(hotel);
 
         updateHotelMinPrice(hotel, inventoryList, checkInDate, checkOutDate);
     }
