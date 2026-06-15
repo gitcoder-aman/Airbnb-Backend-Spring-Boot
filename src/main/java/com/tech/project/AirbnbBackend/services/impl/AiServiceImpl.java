@@ -1,5 +1,8 @@
 package com.tech.project.AirbnbBackend.services.impl;
 
+import com.tech.project.AirbnbBackend.dto.HotelDetailsRequest;
+import com.tech.project.AirbnbBackend.dto.HotelSearchRequest;
+import com.tech.project.AirbnbBackend.entities.Hotel;
 import com.tech.project.AirbnbBackend.services.AiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -115,5 +118,33 @@ public class AiServiceImpl implements AiService {
                 .user(prompt)
                 .call()
                 .content();
+    }
+
+    @Override
+    public HotelDetailsRequest extractHotelName(String prompt) {
+
+        String systemPrompt = """
+                Extract hotel name.
+                
+                IMPORTANT:
+                Return ONLY valid JSON.
+                Do not explain.
+                Do not add markdown.
+                Do not add text before or after JSON.
+                Do not text before JSON.
+                Do not text after JSON.
+                
+                Example:
+                
+                {
+                  "hotelName":"Taj Bangalore"
+                }
+                """;
+        return chatClient
+                .prompt()
+                .system(systemPrompt)
+                .user(prompt)
+                .call()
+                .entity(HotelDetailsRequest.class);
     }
 }

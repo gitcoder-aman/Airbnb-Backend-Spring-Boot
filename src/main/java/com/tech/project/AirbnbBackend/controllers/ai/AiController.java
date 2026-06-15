@@ -1,10 +1,14 @@
 package com.tech.project.AirbnbBackend.controllers.ai;
 
 import com.tech.project.AirbnbBackend.advice.ApiResponse;
+import com.tech.project.AirbnbBackend.controllers.user.HotelBrowseController;
+import com.tech.project.AirbnbBackend.dto.HotelDetailsRequest;
 import com.tech.project.AirbnbBackend.dto.HotelPriceDto;
 import com.tech.project.AirbnbBackend.dto.HotelSearchRequest;
 import com.tech.project.AirbnbBackend.dto.SearchCriteria;
+import com.tech.project.AirbnbBackend.entities.Hotel;
 import com.tech.project.AirbnbBackend.services.AiService;
+import com.tech.project.AirbnbBackend.services.HotelService;
 import com.tech.project.AirbnbBackend.services.InventoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/ai")
@@ -28,12 +33,14 @@ public class AiController {
     private final AiService aiService;
     private final ObjectMapper objectMapper;  // Jackson convert JSON to dto
     private final InventoryService inventoryService;
+    private final HotelService hotelService;
 
 
     @PostMapping("/chat")
-    ResponseEntity<ApiResponse<String>> ask(@RequestBody String question){
+    ResponseEntity<ApiResponse<String>> ask(@RequestBody String question) {
         return ResponseEntity.ok(new ApiResponse<>(aiService.chat(question)));
     }
+
     @PostMapping("/search")
     public ResponseEntity<ApiResponse<String>> search(@RequestBody String prompt) throws Exception {
 
@@ -50,27 +57,23 @@ public class AiController {
         LocalDate checkOutDate = criteria.getCheckOut();
         Double maxPrice = criteria.getMaxPrice();
 
-        if(city == null || city.isBlank()) {
+        if (city == null || city.isBlank()) {
             throw new BadRequestException(
                     "Please specify a city. Example: Hotels in Bangalore under 5000"
             );
         }
 
-        if(checkInDate == null) {
+        if (checkInDate == null) {
             throw new BadRequestException(
                     "Check-in date is required"
             );
         }
 
-        if(checkOutDate == null) {
+        if (checkOutDate == null) {
             throw new BadRequestException(
                     "Check-out date is required"
             );
         }
-        log.info("@@city:{}",city);
-        log.info("@@checkInDate:{}",checkInDate);
-        log.info("@@checkOutDate:{}",checkOutDate);
-        log.info("@@max-price:{}",maxPrice);
 
         HotelSearchRequest hotelSearchRequest = new HotelSearchRequest();
         hotelSearchRequest.setCity(city);
@@ -79,7 +82,7 @@ public class AiController {
         hotelSearchRequest.setMaxPrice(maxPrice);
 
         Page<HotelPriceDto> hotelPriceDtos = inventoryService.searchHotels(hotelSearchRequest);
-        log.info("@size{}",hotelPriceDtos.getContent().size());
+        log.info("@size{}", hotelPriceDtos.getContent().size());
         StringBuilder sb = new StringBuilder();
 
         sb.append("Available hotels:\n\n");
@@ -93,5 +96,46 @@ public class AiController {
         });
 
         return ResponseEntity.ok(new ApiResponse<>(sb.toString()));
+    }
+
+    @PostMapping("/hotel-detail")
+    public ResponseEntity<ApiResponse<String>> hotelDetail(@RequestBody String prompt) throws Exception {
+
+        HotelDetailsRequest json = aiService.extractHotelName(prompt);
+
+        log.info("@@hotel json:{}", json);
+
+        String hotelName = json.getHotelName();
+
+        if (hotelName == null || hotelName.isBlank()) {
+            throw new BadRequestException(
+                    "Please specify a hotel name. Example: Tell me about Taj Bangalore"
+            );
+        }
+        List<Hotel> hotels = hotelService.getHotelByHotelName(hotelName);
+
+        StringBuilder response = new StringBuilder();
+
+        for(Hotel hotel : hotels) {
+
+            String amenities = String.join(", ", hotel.getAmenities());
+            response.append("""
+                    Hotel Name: %s
+                    City: %s
+                    Amenities: %s
+                    Starting Price: %s
+                    Contact Info: %s
+                    """
+                    .formatted(
+                            hotel.getName(),
+                            hotel.getCity(),
+                            amenities,
+                            hotel.getStartingPrice(),
+                            hotel.getContactInfo()
+                    ));
+
+        }
+
+        return ResponseEntity.ok(new ApiResponse<>(response.toString()));
     }
 }

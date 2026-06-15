@@ -28,18 +28,26 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.tech.project.AirbnbBackend.utils.AppUtils.getCurrentUser;
+
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class HotelServiceImpl implements HotelService {
 
+    private static final Set<String> STOP_WORDS = Set.of(
+            "hotel",
+            "hotels",
+            "resort",
+            "resorts",
+            "property",
+            "stay",
+            "accommodation"
+    );
     private final HotelRepository hotelRepository;
     private final ModelMapper modelMapper;
     private final InventoryService inventoryService;
@@ -273,5 +281,24 @@ public class HotelServiceImpl implements HotelService {
         }
 
         return rooms;
+    }
+
+    @Override
+    public List<Hotel> getHotelByHotelName(String hotelName) {
+
+        String cleanedKeyword = Arrays.stream(hotelName.split("\\s+"))
+                .filter(word -> !STOP_WORDS.contains(word.toLowerCase()))
+                .collect(Collectors.joining(" "));
+
+        List<Hotel> hotels = new ArrayList<>();
+
+        for(String keyword : cleanedKeyword.split("\\s+")){
+            hotels.addAll(
+                    hotelRepository.searchByKeyword(keyword)
+            );
+        }
+        return hotels.stream()
+                .distinct()
+                .toList();
     }
 }
