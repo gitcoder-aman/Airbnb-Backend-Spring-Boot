@@ -7,6 +7,7 @@ import com.tech.project.AirbnbBackend.dto.HotelPriceDto;
 import com.tech.project.AirbnbBackend.dto.HotelSearchRequest;
 import com.tech.project.AirbnbBackend.dto.SearchCriteria;
 import com.tech.project.AirbnbBackend.entities.Hotel;
+import com.tech.project.AirbnbBackend.entities.HotelContactInfo;
 import com.tech.project.AirbnbBackend.services.AiService;
 import com.tech.project.AirbnbBackend.services.HotelService;
 import com.tech.project.AirbnbBackend.services.InventoryService;
@@ -21,8 +22,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import tools.jackson.databind.ObjectMapper;
 
+import java.sql.SQLOutput;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/ai")
@@ -114,28 +117,49 @@ public class AiController {
         }
         List<Hotel> hotels = hotelService.getHotelByHotelName(hotelName);
 
-        StringBuilder response = new StringBuilder();
+        String hotelData = hotels.stream()
+                .map(hotel -> """
+                Hotel Name: %s
+                City: %s
+                Amenities: %s
+                Starting Price: %s
+                Contact Info: %s
+                """
+                        .formatted(
+                                hotel.getName(),
+                                hotel.getCity(),
+                                String.join(", ", hotel.getAmenities()),
+                                hotel.getStartingPrice(),
+                                hotel.getContactInfo()
+                        ))
+                .collect(Collectors.joining("\n\n"));
 
-        for(Hotel hotel : hotels) {
+        String res  = aiService.toNaturalLanguage(hotelData,hotelName);
 
-            String amenities = String.join(", ", hotel.getAmenities());
-            response.append("""
-                    Hotel Name: %s
-                    City: %s
-                    Amenities: %s
-                    Starting Price: %s
-                    Contact Info: %s
-                    """
-                    .formatted(
-                            hotel.getName(),
-                            hotel.getCity(),
-                            amenities,
-                            hotel.getStartingPrice(),
-                            hotel.getContactInfo()
-                    ));
+//        StringBuilder response = new StringBuilder();
 
-        }
+//        for(Hotel hotel : hotels) {
+//
+//            String amenities = String.join(", ", hotel.getAmenities());
+//            HotelContactInfo contactInfo = hotel.getContactInfo();
+//            String contact = "Address="+contactInfo.getAddress()+", Email="+contactInfo.getEmail()+", Phone Number="+contactInfo.getPhoneNumber()+", Location="+contactInfo.getLocation();
+//            response.append("""
+//                    Hotel Name: %s
+//                    City: %s
+//                    Amenities: %s
+//                    Starting Price: %s
+//                    Contact Info: %s
+//                    """
+//                    .formatted(
+//                            hotel.getName(),
+//                            hotel.getCity(),
+//                            amenities,
+//                            hotel.getStartingPrice(),
+//                            contact
+//                    ));
+//        }
+        System.out.println(res);
 
-        return ResponseEntity.ok(new ApiResponse<>(response.toString()));
+        return ResponseEntity.ok(new ApiResponse<>(res));
     }
 }

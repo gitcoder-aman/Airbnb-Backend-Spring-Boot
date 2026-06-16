@@ -9,4 +9,6 @@ public interface AiService {
 
      HotelDetailsRequest extractHotelName(String prompt);
 
+
+     String toNaturalLanguage(String hotelData,String hotelName);
 }

@@ -147,4 +147,28 @@ public class AiServiceImpl implements AiService {
                 .call()
                 .entity(HotelDetailsRequest.class);
     }
+
+    @Override
+    public String toNaturalLanguage(String hotelData,String hotelName) {
+
+        return chatClient.prompt()
+                .system("""
+                You are a hotel assistant.
+
+                Rules:
+                1. Use ONLY the provided hotel data.
+                2. Do NOT invent hotels.
+                3. Do NOT invent amenities.
+                4. If multiple hotels are present, summarize them and ask the user which one they want.
+                """)
+                .user("""
+                User searched for: %s
+
+                Available hotels:
+
+                %s
+                """.formatted(hotelName, hotelData))
+                .call()
+                .content();
+    }
 }

@@ -23,7 +23,7 @@ public interface HotelRepository extends JpaRepository<Hotel, Long> {
     @Query("""
             SELECT h
             FROM Hotel h
-            WHERE LOWER(h.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            WHERE LOWER(h.name) LIKE LOWER(CONCAT('%', :keyword, '%')) AND h.active=true
             """)
     List<Hotel> searchByKeyword(@Param("keyword") String keyword);
 }
