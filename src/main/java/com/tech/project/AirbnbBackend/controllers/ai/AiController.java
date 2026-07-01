@@ -14,6 +14,7 @@ import com.tech.project.AirbnbBackend.services.InventoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,6 +56,26 @@ public class AiController {
                         SearchCriteria.class
                 );
 
+        HotelSearchRequest hotelSearchRequest = getHotelSearchRequest(criteria);
+
+        Page<HotelPriceDto> hotelPriceDtos = inventoryService.searchHotels(hotelSearchRequest);
+        log.info("@size{}", hotelPriceDtos.getContent().size());
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("Available hotels:\n\n");
+
+        hotelPriceDtos.getContent().forEach(h -> {
+            sb.append("• ")
+                    .append(h.getHotel().getName())
+                    .append(" - ₹")
+                    .append(Math.round(h.getPrice()))
+                    .append("\n");
+        });
+
+        return ResponseEntity.ok(new ApiResponse<>(sb.toString()));
+    }
+
+    private static @NonNull HotelSearchRequest getHotelSearchRequest(SearchCriteria criteria) throws BadRequestException {
         String city = criteria.getCity();
         LocalDate checkInDate = criteria.getCheckIn();
         LocalDate checkOutDate = criteria.getCheckOut();
@@ -83,22 +104,7 @@ public class AiController {
         hotelSearchRequest.setCheckInDate(checkInDate);
         hotelSearchRequest.setCheckOutDate(checkOutDate);
         hotelSearchRequest.setMaxPrice(maxPrice);
-
-        Page<HotelPriceDto> hotelPriceDtos = inventoryService.searchHotels(hotelSearchRequest);
-        log.info("@size{}", hotelPriceDtos.getContent().size());
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("Available hotels:\n\n");
-
-        hotelPriceDtos.getContent().forEach(h -> {
-            sb.append("• ")
-                    .append(h.getHotel().getName())
-                    .append(" - ₹")
-                    .append(Math.round(h.getPrice()))
-                    .append("\n");
-        });
-
-        return ResponseEntity.ok(new ApiResponse<>(sb.toString()));
+        return hotelSearchRequest;
     }
 
     @PostMapping("/hotel-detail")
