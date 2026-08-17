@@ -61,7 +61,7 @@ public class ReviewController {
     }
     @GetMapping("reviews/has-completed-booking/{roomId}")
     public ResponseEntity<Boolean>hasCompletedBookingForReview(@PathVariable Long roomId){
-        Boolean userBookingCompletedForReview = reviewService.isUserBookingCompletedForReview(roomId);
+        Boolean userBookingCompletedForReview = reviewService.isUserEligibleForReview(roomId);
         return ResponseEntity.ok(userBookingCompletedForReview);
     }
 }

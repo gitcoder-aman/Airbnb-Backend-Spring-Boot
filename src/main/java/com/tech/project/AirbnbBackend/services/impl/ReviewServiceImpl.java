@@ -28,6 +28,8 @@ import org.springframework.stereotype.Service;
 
 import javax.sound.sampled.ReverbType;
 
+import java.util.List;
+
 import static com.tech.project.AirbnbBackend.utils.AppUtils.getCurrentUser;
 
 @Service
@@ -57,10 +59,10 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         //  Check booking completed
-        Boolean hasCompletedBooking = isUserBookingCompletedForReview(roomId);
+        Boolean hasEligibleBooking = isUserEligibleForReview(roomId);
 
-        if (!hasCompletedBooking) {
-            throw new RuntimeException("You can only review after completing your stay");
+        if (!hasEligibleBooking) {
+            throw new RuntimeException("You can only review a stay after checking in");
         }
 
         Review review = modelMapper.map(reviewRequestDto, Review.class);
@@ -132,15 +134,19 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public Boolean isUserBookingCompletedForReview(Long roomId) {
+    public Boolean isUserEligibleForReview(Long roomId) {
 
         User user = getCurrentUser();
 
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
-        //  Check booking completed
+        //  Can review once checked in (even before the stay completes)
         return bookingRepository
-                .existsByUserAndRoomAndBookingStatus(user, room, BookingStatus.COMPLETED);
+                .existsByUserAndRoomAndBookingStatusIn(
+                        user,
+                        room,
+                        List.of(BookingStatus.CHECKED_IN, BookingStatus.COMPLETED)
+                );
     }
 
     public static class ReviewSpecification {

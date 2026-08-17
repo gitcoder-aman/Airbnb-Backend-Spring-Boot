@@ -25,9 +25,13 @@ public interface BookingService {
 
     void cancelBooking(Long bookingId);
 
+    void expireBooking(Long bookingId);
+
     String getBookingStatus(Long bookingId);
 
     List<BookingDto> getAllBookingsByHotelId(Long hotelId);
+
+    List<BookingDto> getAllBookingsByOwner();
 
     HotelReportDto getHotelReport(Long hotelId, LocalDate startDate, LocalDate endDate);
 

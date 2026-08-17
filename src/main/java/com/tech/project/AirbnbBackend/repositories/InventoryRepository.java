@@ -20,6 +20,8 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
 
     void deleteByRoom(Room room);
 
+    boolean existsByRoomAndDate(Room room, LocalDate date);
+
     //Fetches all distinct hotels in a city that can provide the required number
     // of rooms for every day in the given date range.
     @Query("""

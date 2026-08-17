@@ -66,6 +66,8 @@ public class HotelAdminController {
         return ResponseEntity.ok(hotelService.getAllHotelsByOwner());
     }
 
+    //TODO: we will check in last for frontend
+
     @GetMapping("/{hotelId}/bookings")
     public ResponseEntity<List<BookingDto>> getAllBookingsByHotelId(@PathVariable Long hotelId) {
         return ResponseEntity.ok(bookingService.getAllBookingsByHotelId(hotelId));

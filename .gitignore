@@ -34,3 +34,8 @@ build/
 
 #application properties
 src/main/resources/application*.properties
+
+### Frontend ###
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/

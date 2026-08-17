@@ -319,6 +319,45 @@ public class BookingServiceImpl implements BookingService {
 
     }
 
+    @Transactional
+    @Override
+    public void expireBooking(Long bookingId) {
+        log.info("Expiring Booking with Id:{} ", bookingId);
+
+        Booking booking = bookingRepository
+                .findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID " + bookingId));
+
+        User user = getCurrentUser();
+
+        if (!user.getId().equals(booking.getUser().getId())) {
+            throw new UnAuthorisedException("Booking does not belong to this user with id: " + user.getId());
+        }
+
+        List<BookingStatus> activeHolds = List.of(
+                BookingStatus.RESERVED,
+                BookingStatus.GUEST_ADDED,
+                BookingStatus.PAYMENT_PENDING
+        );
+
+        if (!activeHolds.contains(booking.getBookingStatus())) {
+            throw new IllegalStateException("Only an active (unpaid) booking can be expired");
+        }
+
+        booking.setBookingStatus(BookingStatus.EXPIRED);
+        bookingRepository.save(booking);
+
+        // release the rooms that were being held for this booking
+        inventoryRepository.releaseReserved(
+                booking.getRoom().getId(),
+                booking.getCheckInDate(),
+                booking.getCheckOutDate(),
+                booking.getRoomCount()
+        );
+
+        log.info("Booking {} expired and inventory released", bookingId);
+    }
+
     @Override
     public String getBookingStatus(Long bookingId) {
         Booking booking = bookingRepository
@@ -348,6 +387,26 @@ public class BookingServiceImpl implements BookingService {
 
         return bookings.stream()
                 .map((element) -> modelMapper.map(element, BookingDto.class))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BookingDto> getAllBookingsByOwner() {
+        User user = getCurrentUser();
+
+        log.info("Getting all bookings across hotels owned by: {}", user.getEmail());
+
+        List<Booking> bookings = bookingRepository.findByHotelOwnerOrderByCreatedAtDesc(user);
+
+        return bookings.stream()
+                .map(booking -> {
+                    BookingDto bookingDto = modelMapper.map(booking, BookingDto.class);
+                    bookingDto.setHotelName(booking.getHotel().getName());
+                    bookingDto.setHotelId(booking.getHotel().getId());
+                    bookingDto.setRoomType(booking.getRoom().getType() != null ? booking.getRoom().getType().name() : null);
+                    bookingDto.setCustomerName(booking.getUser().getName());
+                    return bookingDto;
+                })
                 .collect(Collectors.toList());
     }
 

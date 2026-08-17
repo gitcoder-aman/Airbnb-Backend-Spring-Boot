@@ -8,6 +8,7 @@ import com.tech.project.AirbnbBackend.entities.enums.Role;
 import com.tech.project.AirbnbBackend.exception.ResourceNotFoundException;
 import com.tech.project.AirbnbBackend.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,10 +16,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
     private final UserRepository userRepository;
@@ -32,10 +35,23 @@ public class AuthService {
         if (user != null) {
             throw new RuntimeException("User is already present with same email id");
         }
-        User newUser = modelMapper.map(signUpRequestDto, User.class);
-        newUser.setRoles(Set.of(Role.GUEST));
+        
+        User newUser = new User();
+        newUser.setEmail(signUpRequestDto.getEmail());
+        newUser.setName(signUpRequestDto.getName());
+        newUser.setGender(signUpRequestDto.getGender());
+        newUser.setDateOfBirth(signUpRequestDto.getDateOfBirth());
+        
+        Set<Role> requestedRoles = signUpRequestDto.getRoles();
+        if (requestedRoles != null && !requestedRoles.isEmpty()) {
+            newUser.setRoles(new HashSet<>(requestedRoles));
+        } else {
+            newUser.setRoles(Set.of(Role.GUEST));
+        }
+        
         newUser.setPassword(passwordEncoder.encode(signUpRequestDto.getPassword()));
         newUser = userRepository.save(newUser);
+        log.info("Successfully created User ID: {} with roles: {}", newUser.getId(), newUser.getRoles());
         return modelMapper.map(newUser, UserDto.class);
     }
 

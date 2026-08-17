@@ -21,5 +21,5 @@ public interface ReviewService {
 
     ReviewResponseDto updateReview(Long reviewId,ReviewRequestDto reviewRequestDto);
 
-    Boolean isUserBookingCompletedForReview(Long roomId);
+    Boolean isUserEligibleForReview(Long roomId);
 }

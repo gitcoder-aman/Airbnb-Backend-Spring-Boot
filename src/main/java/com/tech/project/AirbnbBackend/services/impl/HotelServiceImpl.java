@@ -61,7 +61,7 @@ public class HotelServiceImpl implements HotelService {
         log.info("Creating a new Hotel with name: {}", hotelDto.getName());
 
         Hotel hotel = modelMapper.map(hotelDto, Hotel.class);
-        hotel.setActive(false);
+        hotel.setActive(hotelDto.getActive() != null ? hotelDto.getActive() : true);
 
         User user = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
         hotel.setOwner(user);
@@ -84,7 +84,7 @@ public class HotelServiceImpl implements HotelService {
         log.info("user{}", user.getName());
         log.info("user{}", user.getEmail());
         log.info("user{}", user.getRoles());
-        if (!user.equals(hotel.getOwner())) {
+        if (!user.getId().equals(hotel.getOwner().getId())) {
             throw new UnAuthorisedException("This user does not own this hotel with id: " + id);
         }
         return modelMapper.map(hotel, HotelDto.class);
@@ -96,15 +96,21 @@ public class HotelServiceImpl implements HotelService {
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID" + id));
 
-
         //just we have to assure the admin can update own hotel detail not other
         User user = (User) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
         assert user != null;
-        if (!user.equals(hotel.getOwner())) {
+        if (!user.getId().equals(hotel.getOwner().getId())) {
             throw new UnAuthorisedException("This user does not own this hotel with id: " + id);
         }
+
+        Long originalId = hotel.getId();
+        User originalOwner = hotel.getOwner();
+
         modelMapper.map(hotelDto, hotel);
-        hotelDto.setId(hotel.getId());
+
+        hotel.setId(originalId);
+        hotel.setOwner(originalOwner);
+
         hotel = hotelRepository.save(hotel);
         return modelMapper.map(hotel, HotelDto.class);
     }
@@ -120,7 +126,7 @@ public class HotelServiceImpl implements HotelService {
         //just we have to assure the admin can delete own hotel detail not other
         User user = getCurrentUser();
         assert user != null;
-        if (!user.equals(hotel.getOwner())) {
+        if (!user.getId().equals(hotel.getOwner().getId())) {
             throw new UnAuthorisedException("This user does not own this hotel with id: " + id);
         }
 
@@ -148,7 +154,7 @@ public class HotelServiceImpl implements HotelService {
         //just we have to assure the admin can update own hotel detail not other
         User user = getCurrentUser();
         assert user != null;
-        if (!user.equals(hotel.getOwner())) {
+        if (!user.getId().equals(hotel.getOwner().getId())) {
             throw new UnAuthorisedException("This user does not own this hotel with id: " + hotelId);
         }
         if (hotelDto.getName() != null) {

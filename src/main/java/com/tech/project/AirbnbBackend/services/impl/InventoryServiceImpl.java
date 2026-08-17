@@ -45,7 +45,10 @@ public class InventoryServiceImpl implements InventoryService {
     public void initializeRoomForAYear(Room room) {
         LocalDate today = LocalDate.now();
         LocalDate endDate = today.plusMonths(1);
-        for (;!today.isAfter(endDate);today = today.plusDays(1)){
+        for (; !today.isAfter(endDate); today = today.plusDays(1)) {
+            if (inventoryRepository.existsByRoomAndDate(room, today)) {
+                continue; // Inventory already initialized for this room and date
+            }
             Inventory inventory = Inventory.builder()
                     .hotel(room.getHotel())
                     .room(room)
